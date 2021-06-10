@@ -16,6 +16,7 @@
 // @grant              GM_xmlhttpRequest
 // @connect raw.githubusercontent.com
 // @connect github.com
+// @connect *
 // ==/UserScript==
 
 

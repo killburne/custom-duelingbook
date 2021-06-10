@@ -6,15 +6,15 @@
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
 // @homepageURL  https://www.yugioh-api.com/
-// @updateURL    https://www.yugioh-api.com/custom-duelingbook.user.js
-// @downloadURL  https://www.yugioh-api.com/custom-duelingbook.user.js
+// @updateURL    https://github.com/killburne/custom-duelingbook/raw/master/custom-duelingbook.user.js
+// @downloadURL  https://github.com/killburne/custom-duelingbook/raw/master/custom-duelingbook.user.js
 // @match	     *://*.duelingbook.com/*
 // @include      https://www.duelingbook.com/*
 // @require            https://openuserjs.org/src/libs/sizzle/GM_config.js
 // @grant              GM_getValue
 // @grant              GM_setValue
 // @grant              GM_xmlhttpRequest
-// @connect yugioh-api.com
+// @connect github.com
 // ==/UserScript==
 
 
@@ -23,8 +23,8 @@
     'use strict';
 
     GM_config.init({
-        id: 'kbDuelingBookStreamer',
-        title: 'Streamer Friendly Duelingbook',
+        id: 'kbCustomDb',
+        title: 'Custom DB',
         fields: {
             active: {
                 label: 'Active',
@@ -40,7 +40,7 @@
                 label: 'Banned words list',
                 type: 'text',
                 size: 300,
-                default: 'https://www.yugioh-api.com/bad-words.txt'
+                default: 'https://github.com/killburne/custom-duelingbook/raw/master/bad-words.txt'
             },
             sleeveUrl: {
                 label: 'Sleeve image url',

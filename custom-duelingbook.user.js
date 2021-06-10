@@ -5,7 +5,7 @@
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
-// @homepageURL  https://www.yugioh-api.com/
+// @homepageURL  https://github.com/killburne/custom-duelingbook/
 // @updateURL    https://github.com/killburne/custom-duelingbook/raw/master/custom-duelingbook.user.js
 // @downloadURL  https://github.com/killburne/custom-duelingbook/raw/master/custom-duelingbook.user.js
 // @match	     *://*.duelingbook.com/*

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.0
+// @version      1.0.1
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -9,11 +9,13 @@
 // @updateURL    https://github.com/killburne/custom-duelingbook/raw/master/custom-duelingbook.user.js
 // @downloadURL  https://github.com/killburne/custom-duelingbook/raw/master/custom-duelingbook.user.js
 // @match	     *://*.duelingbook.com/*
+// @match	     *://*.yugioh-card.com/*
 // @include      https://www.duelingbook.com/*
 // @require            https://openuserjs.org/src/libs/sizzle/GM_config.js
 // @grant              GM_getValue
 // @grant              GM_setValue
 // @grant              GM_xmlhttpRequest
+// @connect yugioh-api.com
 // @connect raw.githubusercontent.com
 // @connect github.com
 // @connect *
@@ -23,6 +25,21 @@
 
 (function() {
     'use strict';
+
+    function isOnDb() {
+       return document.getElementById('frames') && document.getElementById('already_logged_in') && document.getElementById('duel_room');
+    }
+
+    function xmur3(str) {
+        for(var i = 0, h = 1779033703 ^ str.length; i < str.length; i++)
+            h = Math.imul(h ^ str.charCodeAt(i), 3432918353),
+                h = h << 13 | h >>> 19;
+        return function() {
+            h = Math.imul(h ^ h >>> 16, 2246822507);
+            h = Math.imul(h ^ h >>> 13, 3266489909);
+            return (h ^= h >>> 16) >>> 0;
+        }
+    }
 
     GM_config.init({
         id: 'kbCustomDb',
@@ -50,17 +67,38 @@
                 size: 300,
                 default: 'https://www.duelingbook.com/./images/sleeves/1.jpg'
             },
-            pfpUrl: {
-                label: 'Top profile image url',
-                type: 'text',
-                size: 300,
-                default: 'https://www.duelingbook.com/images/low-res/3276.jpg'
-            },
-            bottomPfpUrl: {
-                label: 'Bottom profile image url',
-                type: 'text',
-                size: 300,
-                default: 'https://www.duelingbook.com/images/low-res/2319.jpg'
+            pfpUrls: {
+                label: 'profile image urls (1 per line, if more than one chooses randomly)',
+                type: 'textarea',
+                cols: 300,
+                rows: 10,
+                default: 'https://www.duelingbook.com/images/low-res/3276.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/77.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/226.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/293.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/303.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/5661.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/6540.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/675.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/808.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/826.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/4929.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/1075.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/1079.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/1393.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/1363.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/1510.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/1874.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/7414.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/1763.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/7175.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/1896.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/2095.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/2127.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/5215.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/2319.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/2368.jpg\n' +
+                'https://www.duelingbook.com/images/low-res/2492.jpg'
             },
             backgroundUrl: {
                 label: 'Background image url',
@@ -73,6 +111,11 @@
                 type: 'text',
                 size: 300,
                 default: 'https://www.yugioh-api.com/dragonmaid-chamber.png'
+            },
+            hideBackgroundBox: {
+                label: 'Hide background box',
+                type: 'checkbox',
+                default: true
             },
             okSoundUrl: {
                 label: 'Ok sound url',
@@ -108,6 +151,9 @@
     var bannedWords = [];
 
     function addSettingsButton() {
+        if (!isOnDb()) {
+            return
+        }
         var id = 'streamerDbSettings';
         if (!document.getElementById(id)) {
             var wrapper = document.createElement('div');
@@ -140,18 +186,38 @@
         }
     }
     function hideProfilePictures() {
-        var pfpUrl = GM_config.get('pfpUrl');
-        var bottomPfpUrl = GM_config.get('bottomPfpUrl');
-        if (pfpUrl) {
+        var pfpUrls = GM_config.get('pfpUrls').split('\n').map(p => p.trim()).filter(p => !!p);
+        //var bottomPfpUrls = GM_config.get('bottomPfpUrl').split('\n').map(p => p.trim()).filter(p => !!p);
+
+        if (pfpUrls.length > 0) {
+            var topUsername = document.querySelector('#avatar2 .username_txt').textContent;
+            var bottomUsername = document.querySelector('#avatar1 .username_txt').textContent;
+
+            var topRandom = xmur3(topUsername);
+            var pfpUrl = pfpUrls[topRandom() % pfpUrls.length];
             for (var pfpTop of document.querySelectorAll('#avatar2 .image')) {
-                pfpTop.setAttribute('src', pfpUrl);
+                if (pfpUrls.indexOf(pfpTop.getAttribute('src')) === -1) {
+                    pfpTop.setAttribute('src', pfpUrl);
+                }
+            }
+            if (bottomUsername != (window.unsafeWindow || window).user_username) {
+                var botRandom = xmur3(bottomUsername);
+                var bottomPfpUrl = pfpUrls[topRandom() % pfpUrls.length];
+                for (var pfpBot of document.querySelectorAll('#avatar1 .image')) {
+                    if (pfpUrls.indexOf(pfpBot.getAttribute('src')) === -1) {
+                        pfpBot.setAttribute('src', bottomPfpUrl);
+                    }
+                }
             }
         }
-        if (bottomPfpUrl) {
+        /*if (bottomPfpUrls.length > 0) {
+            var bottomPfpUrl = bottomPfpUrls[botRandom() % pfpUrls.length];
             for (var pfpBot of document.querySelectorAll('#avatar1 .image')) {
-                pfpBot.setAttribute('src', bottomPfpUrl);
+                if (bottomPfpUrls.indexOf(pfpBot.getAttribute('src')) === -1) {
+                    pfpBot.setAttribute('src', bottomPfpUrl);
+                }
             }
-        }
+        }*/
     }
     function setBackgroundImage() {
         var backgroundUrl = GM_config.get('backgroundUrl');
@@ -166,8 +232,11 @@
         if (greenLines) {
             greenLines.remove();
         }
-        document.body.style.background='url("' + backgroundUrl + '")';
-        document.body.style['background-size']='cover';
+        var bg = 'url("' + backgroundUrl + '")';
+        if (document.body.style.background != bg) {
+            document.body.style.background=bg;
+            document.body.style['background-size']='cover';
+        }
     }
     function setOkSound() {
         var okSoundUrl = GM_config.get('okSoundUrl');
@@ -192,7 +261,16 @@
         }
         var el = document.getElementById('brionac_large');
         if (el) {
-            el.setAttribute('src', startPageMonsterUrl);
+            if (el.getAttribute('src') != startPageMonsterUrl) {
+                el.setAttribute('src', startPageMonsterUrl);
+            }
+        }
+    }
+    function hideBackgroundBox() {
+        var hideBackgroundBox = GM_config.get('hideBackgroundBox');
+        var el = document.getElementById('circuit_cover');
+        if (el) {
+            el.style.display = hideBackgroundBox ? 'none' : 'block';
         }
     }
     function removeWatchersList() {
@@ -244,7 +322,7 @@
         }
     }
     function applyChanges() {
-        if (!GM_config.get('active')) {
+        if (!GM_config.get('active') || !isOnDb()) {
             return;
         }
         makeAllSleevesDefault();
@@ -255,11 +333,12 @@
         setStartPageMonster();
         removeWatchersList();
         removeDuelNotes();
+        hideBackgroundBox();
     }
 
     var initDone = false;
     function init() {
-        if (!GM_config.get('active')) {
+        if (!GM_config.get('active') || !isOnDb()) {
             return;
         }
         if (initDone) {
@@ -282,7 +361,9 @@
                 observer.observe(target, config);
             }, 300);
         });
-        observer.observe(target, config);
+        if (target) {
+            observer.observe(target, config);
+        }
 
         var chatObserverConfig = {childList: true, subtree: true};
         var chatTarget = document.querySelector('#duel .cout_txt');
@@ -297,8 +378,46 @@
             chatApplying = false;
             chatObserver.observe(chatTarget, chatObserverConfig);
         });
-        chatObserver.observe(chatTarget, chatObserverConfig);
+        if (chatTarget) {
+            chatObserver.observe(chatTarget, chatObserverConfig);
+        }
     }
+
+    var dbData = '';
+
+    function loadData() {
+        GM_xmlhttpRequest({
+            method: 'GET',
+            url: 'https://www.yugioh-api.com/db-data.json',
+            onload : function(response) {
+                if (response.responseText !== dbData) {
+                    dbData = response.responseText;
+                    if (dbData) {
+                        var data = JSON.parse(dbData);
+                        if (data && data.soundUrl && (window.unsafeWindow || window).playSound) {
+                            playSound(data.soundUrl);
+                        }
+                        if (data && data.imageUrl && (window.unsafeWindow || window).document.body.textContent.search(new RegExp('GUARDRAGON AGARPAIN|KNIGHTMARE GOBLIN|AVALVAL CHAIN|THE TYRANT NEPTUNE', 'i')) !== -1) {
+                            var img = document.createElement('img');
+                            img.src = data.imageUrl;
+                            //img.style.position = 'absolute';
+                            //img.style.left = '0';
+                            //img.style.top = '0';
+                            img.style.width = '100%';
+                            img.style.height = '100%';
+                            img.style['max-height'] = '100vh';
+                            img.style['max-width'] = '100vw';
+                            document.body.prepend(img);
+                        }
+                    }
+                }
+            }
+        });
+    }
+    setInterval(function() {
+        loadData();
+    }, 15000);
+    loadData();
 
     GM_xmlhttpRequest({
         method: 'GET',

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.1
+// @version      1.0.2
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -388,7 +388,7 @@
     function loadData() {
         GM_xmlhttpRequest({
             method: 'GET',
-            url: 'https://www.yugioh-api.com/db-data.json',
+            url: 'https://www.yugioh-api.com/db-data.json?t=' + Date.now(),
             onload : function(response) {
                 if (response.responseText !== dbData) {
                     dbData = response.responseText;

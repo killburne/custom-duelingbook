@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.2
+// @version      1.0.3
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -416,8 +416,7 @@
     }
     setInterval(function() {
         loadData();
-    }, 15000);
-    loadData();
+    }, 10000);
 
     GM_xmlhttpRequest({
         method: 'GET',

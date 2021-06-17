@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.3
+// @version      1.0.4
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -9,7 +9,6 @@
 // @updateURL    https://github.com/killburne/custom-duelingbook/raw/master/custom-duelingbook.user.js
 // @downloadURL  https://github.com/killburne/custom-duelingbook/raw/master/custom-duelingbook.user.js
 // @match	     *://*.duelingbook.com/*
-// @match	     *://*.yugioh-card.com/*
 // @include      https://www.duelingbook.com/*
 // @require            https://openuserjs.org/src/libs/sizzle/GM_config.js
 // @grant              GM_getValue
@@ -382,41 +381,6 @@
             chatObserver.observe(chatTarget, chatObserverConfig);
         }
     }
-
-    var dbData = '';
-
-    function loadData() {
-        GM_xmlhttpRequest({
-            method: 'GET',
-            url: 'https://www.yugioh-api.com/db-data.json?t=' + Date.now(),
-            onload : function(response) {
-                if (response.responseText !== dbData) {
-                    dbData = response.responseText;
-                    if (dbData) {
-                        var data = JSON.parse(dbData);
-                        if (data && data.soundUrl && (window.unsafeWindow || window).playSound) {
-                            playSound(data.soundUrl);
-                        }
-                        if (data && data.imageUrl && (window.unsafeWindow || window).document.body.textContent.search(new RegExp('GUARDRAGON AGARPAIN|KNIGHTMARE GOBLIN|AVALVAL CHAIN|THE TYRANT NEPTUNE', 'i')) !== -1) {
-                            var img = document.createElement('img');
-                            img.src = data.imageUrl;
-                            //img.style.position = 'absolute';
-                            //img.style.left = '0';
-                            //img.style.top = '0';
-                            img.style.width = '100%';
-                            img.style.height = '100%';
-                            img.style['max-height'] = '100vh';
-                            img.style['max-width'] = '100vw';
-                            document.body.prepend(img);
-                        }
-                    }
-                }
-            }
-        });
-    }
-    setInterval(function() {
-        loadData();
-    }, 10000);
 
     GM_xmlhttpRequest({
         method: 'GET',

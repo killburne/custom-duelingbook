@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.7
+// @version      1.0.8
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -70,7 +70,13 @@
                 label: 'Think Text',
                 type: 'text',
                 size: 300,
-                default: 'thinking'
+                default: "It's just like you know it's like kinda hard to explain right but you know like i guess it's like just you know right? thinking."
+            },
+            okText: {
+                label: 'Ok Text',
+                type: 'text',
+                size: 300,
+                default: 'ok'
             },
             sleeveUrl: {
                 label: 'Sleeve image url',
@@ -380,6 +386,13 @@
         (window.unsafeWindow || window).Send({"action":"Duel", "play":"Duel message", "message":thinkingText, "html":0});
         (window.unsafeWindow || window).Send({"action":"Duel", "play":"Thinking"});
     }
+    function sendOkText() {
+        var okText = GM_config.get('okText');
+        if (!okText || !((window.unsafeWindow || window).Send)) {
+            return;
+        }
+        (window.unsafeWindow || window).Send({"action":"Duel", "play":"Duel message", "message":okText, "html":0});
+    }
     var initDone = false;
     function init() {
         if (!GM_config.get('active') || !isOnDb()) {
@@ -426,10 +439,11 @@
             chatObserver.observe(chatTarget, chatObserverConfig);
         }
         document.addEventListener('click', function(e) {
-            if (e.target.id !== 'think_btn') {
-                return;
+            if (e.target.id === 'think_btn') {
+                sendThinkingText();
+            } else if (e.target.id === 'good_btn') {
+                sendOkText();
             }
-            sendThinkingText();
         }, false);
     }
 

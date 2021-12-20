@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.6
+// @version      1.0.7
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -65,6 +65,12 @@
                 type: 'text',
                 size: 300,
                 default: 'https://www.yugioh-api.com/thinkmech.png'
+            },
+            thinkingText: {
+                label: 'Think Text',
+                type: 'text',
+                size: 300,
+                default: 'thinking'
             },
             sleeveUrl: {
                 label: 'Sleeve image url',
@@ -366,7 +372,14 @@
         hideBackgroundBox();
         replaceThinkEmote();
     }
-
+    function sendThinkingText() {
+        var thinkingText = GM_config.get('thinkingText');
+        if (!thinkingText || !((window.unsafeWindow || window).Send)) {
+            return;
+        }
+        (window.unsafeWindow || window).Send({"action":"Duel", "play":"Duel message", "message":thinkingText, "html":0});
+        (window.unsafeWindow || window).Send({"action":"Duel", "play":"Thinking"});
+    }
     var initDone = false;
     function init() {
         if (!GM_config.get('active') || !isOnDb()) {
@@ -412,6 +425,12 @@
         if (chatTarget) {
             chatObserver.observe(chatTarget, chatObserverConfig);
         }
+        document.addEventListener('click', function(e) {
+            if (e.target.id !== 'think_btn') {
+                return;
+            }
+            sendThinkingText();
+        }, false);
     }
 
     GM_xmlhttpRequest({

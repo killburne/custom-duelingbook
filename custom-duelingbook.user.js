@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.5
+// @version      1.0.6
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -110,6 +110,11 @@
                 type: 'text',
                 size: 300,
                 default: 'https://wallpaperaccess.com/full/1429125.jpg'
+            },
+            hideStartPageMonster: {
+                label: 'Hide start page monster',
+                type: 'checkbox',
+                default: false
             },
             startPageMonsterUrl: {
                 label: 'Start page monster image url',
@@ -273,15 +278,22 @@
         }
     }
     function setStartPageMonster() {
+        var el = document.getElementById('brionac_large');
+        if (!el) {
+            return;
+        }
+        if (GM_config.get('hideStartPageMonster')) {
+            el.setAttribute('hidden', '');
+            return;
+        } else {
+            el.removeAttribute('hidden');
+        }
         var startPageMonsterUrl = GM_config.get('startPageMonsterUrl');
         if (!startPageMonsterUrl) {
             return;
         }
-        var el = document.getElementById('brionac_large');
-        if (el) {
-            if (el.getAttribute('src') != startPageMonsterUrl) {
-                el.setAttribute('src', startPageMonsterUrl);
-            }
+        if (el.getAttribute('src') != startPageMonsterUrl) {
+            el.setAttribute('src', startPageMonsterUrl);
         }
     }
     function hideBackgroundBox() {

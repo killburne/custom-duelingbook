@@ -60,6 +60,12 @@
                 size: 300,
                 default: 'https://github.com/killburne/custom-duelingbook/raw/master/bad-words.txt'
             },
+            thinkEmoteUrl: {
+                label: 'Think Emote Url',
+                type: 'text',
+                size: 300,
+                default: 'https://www.yugioh-api.com/thinkmech.png'
+            },
             sleeveUrl: {
                 label: 'Sleeve image url',
                 type: 'text',
@@ -104,11 +110,6 @@
                 type: 'text',
                 size: 300,
                 default: 'https://wallpaperaccess.com/full/1429125.jpg'
-            },
-            hideStartPageMonster: {
-                label: 'Hide start page monster',
-                type: 'checkbox',
-                default: false
             },
             startPageMonsterUrl: {
                 label: 'Start page monster image url',
@@ -189,6 +190,19 @@
             back.setAttribute('src', sleeveUrl);
         }
     }
+    function replaceThinkEmote() {
+        var thinkEmoteUrl = GM_config.get('thinkEmoteUrl');
+        if (!thinkEmoteUrl) {
+            return;
+        }
+        for (var thinkImg of document.querySelectorAll('.think')) {
+            thinkImg.setAttribute('src', thinkEmoteUrl);
+        }
+        var thinkButtonImg = document.querySelector('#think_btn img');
+        if (thinkButtonImg) {
+            thinkButtonImg.setAttribute('src', thinkEmoteUrl);
+        }
+    }
     function hideProfilePictures() {
         var pfpUrls = GM_config.get('pfpUrls').split('\n').map(p => p.trim()).filter(p => !!p);
         //var bottomPfpUrls = GM_config.get('bottomPfpUrl').split('\n').map(p => p.trim()).filter(p => !!p);
@@ -259,22 +273,15 @@
         }
     }
     function setStartPageMonster() {
-        var el = document.getElementById('brionac_large');
-        if (!el) {
-            return;
-        }
-        if (GM_config.get('hideStartPageMonster')) {
-            el.setAttribute('hidden', '');
-            return;
-        } else {
-            el.removeAttribute('hidden');
-        }
         var startPageMonsterUrl = GM_config.get('startPageMonsterUrl');
         if (!startPageMonsterUrl) {
             return;
         }
-        if (el.getAttribute('src') != startPageMonsterUrl) {
-            el.setAttribute('src', startPageMonsterUrl);
+        var el = document.getElementById('brionac_large');
+        if (el) {
+            if (el.getAttribute('src') != startPageMonsterUrl) {
+                el.setAttribute('src', startPageMonsterUrl);
+            }
         }
     }
     function hideBackgroundBox() {
@@ -345,6 +352,7 @@
         removeWatchersList();
         removeDuelNotes();
         hideBackgroundBox();
+        replaceThinkEmote();
     }
 
     var initDone = false;

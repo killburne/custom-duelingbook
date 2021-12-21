@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.14
+// @version      1.0.15
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -244,6 +244,7 @@
 
         var wrapper = document.createElement('div');
         wrapper.id = id;
+        wrapper.style['z-index'] = 999999999;
         wrapper.style.position = 'fixed';
         wrapper.style.right = '20px';
         wrapper.style.bottom = '20px';

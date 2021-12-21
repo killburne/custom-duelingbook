@@ -569,7 +569,6 @@
             url: GM_config.get('bannedWordsList'),
             onload: function (response) {
                 bannedWords = response.responseText.split('\n').filter(w => !!w.trim());
-                init();
             }
         });
     }

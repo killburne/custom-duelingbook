@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.12
+// @version      1.0.13
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -216,6 +216,16 @@
         }
     }
 
+    function sendDuelChatMessages(messages) {
+        var message = messages.shift();
+        (window.unsafeWindow || window).Send({"action":"Duel", "play":"Duel message", "message":message.trim(), "html":0});
+        if (messages.length > 0) {
+            setTimeout(function() {
+               sendDuelChatMessages(messages);
+            }, 80);
+        }
+    }
+
     function addMacroButtons() {
         if (!isOnDb()) {
             return
@@ -263,9 +273,7 @@
                 }
                 var decoded = decodeURIComponent(atob(text));
                 var texts = decoded.split('|');
-                for (var message of texts) {
-                    (window.unsafeWindow || window).Send({"action":"Duel", "play":"Duel message", "message":message.trim(), "html":0});
-                }
+                sendDuelChatMessages(texts);
             }
         };
 
@@ -278,7 +286,9 @@
             return;
         }
         for (var back of document.querySelectorAll('.cardback img, img.cardback')) {
-            back.setAttribute('src', sleeveUrl);
+            if (back.getAttribute('src') !== sleeveUrl) {
+                back.setAttribute('src', sleeveUrl);
+            }
         }
     }
     function replaceThinkEmote() {
@@ -287,10 +297,12 @@
             return;
         }
         for (var thinkImg of document.querySelectorAll('.think')) {
-            thinkImg.setAttribute('src', thinkEmoteUrl);
+            if (thinkImg.getAttribute('src') !== thinkEmoteUrl) {
+                thinkImg.setAttribute('src', thinkEmoteUrl);
+            }
         }
         var thinkButtonImg = document.querySelector('#think_btn img');
-        if (thinkButtonImg) {
+        if (thinkButtonImg && thinkButtonImg.getAttribute('src') !== thinkEmoteUrl) {
             thinkButtonImg.setAttribute('src', thinkEmoteUrl);
         }
     }
@@ -369,7 +381,9 @@
             return;
         }
         for (var okImage of document.querySelectorAll('.duel_avatar .all_good')) {
-            okImage.setAttribute('src', okImageUrl);
+            if (okImage.getAttribute('src') !== okImageUrl) {
+                okImage.setAttribute('src', okImageUrl);
+            }
         }
     }
     function setStartPageMonster() {
@@ -387,7 +401,7 @@
         if (!startPageMonsterUrl) {
             return;
         }
-        if (el.getAttribute('src') != startPageMonsterUrl) {
+        if (el.getAttribute('src') !== startPageMonsterUrl) {
             el.setAttribute('src', startPageMonsterUrl);
         }
     }
@@ -466,7 +480,7 @@
         if (!thinkingText || !((window.unsafeWindow || window).Send)) {
             return;
         }
-        (window.unsafeWindow || window).Send({"action":"Duel", "play":"Duel message", "message":thinkingText, "html":0});
+        sendDuelChatMessages([thinkingText]);
         (window.unsafeWindow || window).Send({"action":"Duel", "play":"Thinking"});
     }
     function sendOkText() {
@@ -474,7 +488,7 @@
         if (!okText || !((window.unsafeWindow || window).Send)) {
             return;
         }
-        (window.unsafeWindow || window).Send({"action":"Duel", "play":"Duel message", "message":okText, "html":0});
+        sendDuelChatMessages([okText]);
     }
     var initDone = false;
     function init() {

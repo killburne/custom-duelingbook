@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.17
+// @version      1.0.18
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -217,6 +217,24 @@
         }
     }
 
+    function getCurrentPlayer() {
+        var win = (window.unsafeWindow || window);
+        var player;
+        if (win.user_username == win.player1.username) {
+            player = player1;
+        }
+        else if (win.user_username == win.player2.username) {
+            player = player2;
+        }
+        else if (win.tag_duel && win.user_username == win.player3.username) {
+            player = player3;
+        }
+        else if (win.tag_duel && win.user_username == win.player4.username) {
+            player = player4;
+        }
+        return player;
+    }
+
     function sendDuelChatMessages(messages) {
         var message = messages.shift();
         (window.unsafeWindow || window).Send({"action":"Duel", "play":"Duel message", "message":message.trim(), "html":0});
@@ -289,6 +307,20 @@
                     return document.querySelector('#avatar2 .username_txt').textContent;
                 case 'botUsername':
                     return document.querySelector('#avatar1 .username_txt').textContent;
+                case 'halfOfLP':
+                    var player = getCurrentPlayer();
+                    var lp = 0;
+                    if (player) {
+                        lp = Math.floor(player.lifepoints/2);
+                    }
+                    return lp;
+                case 'currentLP':
+                    var player2 = getCurrentPlayer();
+                    var lp2 = 0;
+                    if (player2) {
+                        lp2 = player2.lifepoints;
+                    }
+                    return lp2;
             }
             return '';
         });
@@ -569,6 +601,7 @@
             url: GM_config.get('bannedWordsList'),
             onload: function (response) {
                 bannedWords = response.responseText.split('\n').filter(w => !!w.trim());
+                init();
             }
         });
     }

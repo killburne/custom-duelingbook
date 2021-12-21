@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.9
+// @version      1.0.10
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -76,7 +76,7 @@
                 label: 'Ok Text',
                 type: 'text',
                 size: 300,
-                default: 'pollo 🐔'
+                default: '🐔👍'
             },
             sleeveUrl: {
                 label: 'Sleeve image url',
@@ -162,13 +162,15 @@
                 default: true
             },
             macroTexts: {
-                label: 'Macro texts',
+                label: 'Macro texts (Button Text | Text to send)',
                 type: 'textarea',
                 cols: 300,
                 rows: 10,
-                default: 'GG | gg ez noob\n' +
+                default: ':)\n' +
+                'TOO LATE | Sorry iz too late\n' +
+                '🤡\n' +
                 'CHET | Stop cheating\n' +
-                ':)'
+                'GG | gg ez noob'
             }
         },
         events: {
@@ -244,7 +246,7 @@
             } else if (parts.length === 1) {
                 macroText = buttonText = parts[0].trim();
             }
-            wrapper.innerHTML += '<button class="macro-button" style="width: 100%; margin-bottom:8px;font-size:16px;" data-text="' + btoa(macroText) + '">' + buttonText + '</button>';
+            wrapper.innerHTML += '<button class="macro-button" style="width: 100%; margin-bottom:8px;font-size:16px;" data-text="' + btoa(encodeURIComponent(macroText)) + '">' + buttonText + '</button>';
         }
 
         wrapper.onclick = function (e) {
@@ -253,7 +255,7 @@
                 if (!text) {
                     return;
                 }
-                (window.unsafeWindow || window).Send({"action":"Duel", "play":"Duel message", "message":atob(text), "html":0});
+                (window.unsafeWindow || window).Send({"action":"Duel", "play":"Duel message", "message":decodeURIComponent(atob(text)), "html":0});
             }
         };
 

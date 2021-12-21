@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.8
+// @version      1.0.9
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -76,7 +76,7 @@
                 label: 'Ok Text',
                 type: 'text',
                 size: 300,
-                default: 'ok'
+                default: 'pollo 🐔'
             },
             sleeveUrl: {
                 label: 'Sleeve image url',
@@ -160,6 +160,15 @@
                 label: 'Hide duel notes',
                 type: 'checkbox',
                 default: true
+            },
+            macroTexts: {
+                label: 'Macro texts',
+                type: 'textarea',
+                cols: 300,
+                rows: 10,
+                default: 'GG | gg ez noob\n' +
+                'CHET | Stop cheating\n' +
+                ':)'
             }
         },
         events: {
@@ -179,6 +188,7 @@
         var id = 'streamerDbSettings';
         if (!document.getElementById(id)) {
             var wrapper = document.createElement('div');
+            wrapper.id = id;
             wrapper.title = 'Streamer Friendly DB';
             wrapper.style.position = 'fixed';
             wrapper.style.left = '20px';
@@ -196,6 +206,58 @@
                 }
             };
         }
+    }
+
+    function addMacroButtons() {
+        if (!isOnDb()) {
+            return
+        }
+        var id = 'macroButtons';
+        const wrapperEl = document.getElementById(id);
+        if (wrapperEl) {
+            wrapperEl.remove();
+        }
+
+        var macroTexts = GM_config.get('macroTexts');
+        if (!macroTexts) {
+            return;
+        }
+
+        var wrapper = document.createElement('div');
+        wrapper.id = id;
+        wrapper.style.position = 'fixed';
+        wrapper.style.right = '20px';
+        wrapper.style.bottom = '20px';
+        wrapper.style.top = 'auto';
+        wrapper.style.left = 'auto';
+        wrapper.style.width = '120px';
+        wrapper.style['font-size'] = '20px';
+        wrapper.innerHTML = '<h2 style="background-color: black; color: white;">Macros</h2>';
+        const macros = macroTexts.split('\n');
+        for (const macro of macros) {
+            const parts = macro.split('|');
+            let buttonText = '';
+            let macroText = '';
+            if (parts.length === 2) {
+                buttonText = parts[0].trim();
+                macroText = parts[1].trim();
+            } else if (parts.length === 1) {
+                macroText = buttonText = parts[0].trim();
+            }
+            wrapper.innerHTML += '<button class="macro-button" style="width: 100%; margin-bottom:8px;font-size:16px;" data-text="' + btoa(macroText) + '">' + buttonText + '</button>';
+        }
+
+        wrapper.onclick = function (e) {
+            if (e.target.className === 'macro-button') {
+                const text = e.target.dataset.text;
+                if (!text) {
+                    return;
+                }
+                (window.unsafeWindow || window).Send({"action":"Duel", "play":"Duel message", "message":atob(text), "html":0});
+            }
+        };
+
+        document.body.appendChild(wrapper);
     }
 
     function makeAllSleevesDefault() {
@@ -398,6 +460,7 @@
         if (!GM_config.get('active') || !isOnDb()) {
             return;
         }
+        addMacroButtons();
         if (initDone) {
             return;
         }

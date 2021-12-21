@@ -177,7 +177,9 @@
                 'TOO LATE | Sorry iz too late\n' +
                 '🤡\n' +
                 'CHET | Stop cheating\n' +
-                'GG | gg ez noob'
+                'GG | gg ez noob\n' +
+                'LP/2 | /sub ${halfOfLP}\n' +
+                'LP*2 | /add ${currentLP}'
             }
         },
         events: {

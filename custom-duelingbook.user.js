@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.10
+// @version      1.0.11
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -116,6 +116,12 @@
                 'https://www.duelingbook.com/images/low-res/2319.jpg\n' +
                 'https://www.duelingbook.com/images/low-res/2368.jpg\n' +
                 'https://www.duelingbook.com/images/low-res/2492.jpg'
+            },
+            ownPfpUrl: {
+                label: 'Url for your own profile picture (leave empty to not change your own pfp)',
+                type: 'text',
+                size: 300,
+                default: 'https://www.duelingbook.com/images/low-res/675.jpg'
             },
             backgroundUrl: {
                 label: 'Background image url',
@@ -299,12 +305,21 @@
                     pfpTop.setAttribute('src', pfpUrl);
                 }
             }
+
+            var ownPfpUrl = GM_config.get('ownPfpUrl');
+
             if (bottomUsername != (window.unsafeWindow || window).user_username) {
                 var botRandom = xmur3(bottomUsername);
                 var bottomPfpUrl = pfpUrls[topRandom() % pfpUrls.length];
                 for (var pfpBot of document.querySelectorAll('#avatar1 .image')) {
                     if (pfpUrls.indexOf(pfpBot.getAttribute('src')) === -1) {
                         pfpBot.setAttribute('src', bottomPfpUrl);
+                    }
+                }
+            } else if (ownPfpUrl) {
+                for (var pfpBot2 of document.querySelectorAll('#avatar1 .image')) {
+                    if (ownPfpUrl !== pfpBot2.getAttribute('src')) {
+                        pfpBot2.setAttribute('src', ownPfpUrl);
                     }
                 }
             }

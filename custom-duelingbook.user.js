@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.13
+// @version      1.0.14
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -173,6 +173,7 @@
                 cols: 300,
                 rows: 10,
                 default: ':)\n' +
+                "Hello | Hello ${topUsername} :) I'm the real ${botUsername}\n" +
                 'TOO LATE | Sorry iz too late\n' +
                 '🤡\n' +
                 'CHET | Stop cheating\n' +
@@ -272,12 +273,24 @@
                     return;
                 }
                 var decoded = decodeURIComponent(atob(text));
-                var texts = decoded.split('|');
+                var texts = replaceVariablesInStr(decoded).split('|');
                 sendDuelChatMessages(texts);
             }
         };
 
         document.body.appendChild(wrapper);
+    }
+
+    function replaceVariablesInStr(str) {
+        return str.replace(/\$\{([^}]+)\}/g, function(whole, varName) {
+            switch (varName) {
+                case 'topUsername':
+                    return document.querySelector('#avatar2 .username_txt').textContent;
+                case 'botUsername':
+                    return document.querySelector('#avatar1 .username_txt').textContent;
+            }
+            return '';
+        });
     }
 
     function makeAllSleevesDefault() {

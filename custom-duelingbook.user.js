@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.11
+// @version      1.0.12
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -221,7 +221,7 @@
             return
         }
         var id = 'macroButtons';
-        const wrapperEl = document.getElementById(id);
+        var wrapperEl = document.getElementById(id);
         if (wrapperEl) {
             wrapperEl.remove();
         }
@@ -241,14 +241,14 @@
         wrapper.style.width = '120px';
         wrapper.style['font-size'] = '20px';
         wrapper.innerHTML = '<h2 style="background-color: black; color: white;">Macros</h2>';
-        const macros = macroTexts.split('\n');
-        for (const macro of macros) {
-            const parts = macro.split('|');
+        var macros = macroTexts.split('\n');
+        for (var macro of macros) {
+            var parts = macro.split('|');
             let buttonText = '';
             let macroText = '';
-            if (parts.length === 2) {
-                buttonText = parts[0].trim();
-                macroText = parts[1].trim();
+            if (parts.length > 1) {
+                buttonText = parts.shift();
+                macroText = parts.join('|');
             } else if (parts.length === 1) {
                 macroText = buttonText = parts[0].trim();
             }
@@ -257,11 +257,15 @@
 
         wrapper.onclick = function (e) {
             if (e.target.className === 'macro-button') {
-                const text = e.target.dataset.text;
+                var text = e.target.dataset.text;
                 if (!text) {
                     return;
                 }
-                (window.unsafeWindow || window).Send({"action":"Duel", "play":"Duel message", "message":decodeURIComponent(atob(text)), "html":0});
+                var decoded = decodeURIComponent(atob(text));
+                var texts = decoded.split('|');
+                for (var message of texts) {
+                    (window.unsafeWindow || window).Send({"action":"Duel", "play":"Duel message", "message":message.trim(), "html":0});
+                }
             }
         };
 

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.15
+// @version      1.0.16
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -559,13 +559,19 @@
         }, false);
     }
 
-    GM_xmlhttpRequest({
-        method: 'GET',
-        url: GM_config.get('bannedWordsList'),
-        onload: function (response) {
-            bannedWords = response.responseText.split('\n').filter(w => !!w.trim());
-            addSettingsButton();
-            init();
-        }
-    });
+    const bannedWordsList = GM_config.get('bannedWordsList');
+    if (!bannedWordsList) {
+        addSettingsButton();
+        init();
+    } else {
+        GM_xmlhttpRequest({
+            method: 'GET',
+            url: GM_config.get('bannedWordsList'),
+            onload: function (response) {
+                bannedWords = response.responseText.split('\n').filter(w => !!w.trim());
+                addSettingsButton();
+                init();
+            }
+        });
+    }
 })();

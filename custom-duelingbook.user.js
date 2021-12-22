@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.21
+// @version      1.0.22
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -172,16 +172,22 @@
                 type: 'textarea',
                 cols: 300,
                 rows: 10,
-                default: ':)\n' +
+                default: '-- Chatting\n' +
+                ':)\n' +
                 "Hello | Hello ${topUsername} :) I'm the real ${botUsername}\n" +
                 'TOO LATE | Sorry iz too late\n' +
                 '🤡\n' +
                 'CHET | Stop cheating\n' +
                 'GG | gg ez noob\n' +
+                '-- LP\n' +
                 'LP/2 | /sub ${halfOfLP}\n' +
                 'LP*2 | /add ${currentLP}\n' +
+                '-- SS\n' +
                 'SS Driver | ${specialFromDeckInAtkRandomZone(PSY-Frame Driver)}\n' +
-                'Send DPE Garnets | ${sendFromDeckToGY(Destiny HERO - Celestial~Destiny HERO - Dasher)}'
+                'SS Driver Def | ${specialFromDeckInDefRandomZone(PSY-Frame Driver)}\n' +
+                '-- Deck to GY\n' +
+                'Send DPE Garnets | ${sendFromDeckToGY(Destiny HERO - Celestial~Destiny HERO - Dasher)}\n' +
+                'Send Dragoon Garnets | ${sendFromDeckToGY(Dark Magician~Red-Eyes Black Dragon)}'
             }
         },
         events: {
@@ -219,6 +225,82 @@
                 }
             };
         }
+    }
+
+    function addMacroButtons() {
+        if (!isOnDb()) {
+            return
+        }
+        var id = 'macroButtons';
+        var wrapperEl = document.getElementById(id);
+        if (wrapperEl) {
+            wrapperEl.remove();
+        }
+
+        var macroTexts = GM_config.get('macroTexts');
+        if (!macroTexts) {
+            return;
+        }
+
+        var wrapper = document.createElement('div');
+        wrapper.id = id;
+        wrapper.style['z-index'] = 999999999;
+        wrapper.style.position = 'fixed';
+        wrapper.style.right = '20px';
+        wrapper.style.bottom = '20px';
+        wrapper.style.top = 'auto';
+        wrapper.style.left = 'auto';
+        wrapper.style.width = '120px';
+        wrapper.style['font-size'] = '20px';
+        var html = '<h2 id="macroHeadline" style="background-color: black; color: white;cursor: pointer;">Macros</h2><div id="macrosWrapper" style="position: initial; display: none;">';
+        var macros = macroTexts.split('\n');
+        let isInCategory = false;
+        for (var macro of macros) {
+            if (macro.indexOf('--') === 0) {
+                if (isInCategory) {
+                    html += '</div></div>';
+                }
+                isInCategory = true;
+                html += '<div class="macroCategory" style="position: initial;"><h3 class="macroCategoryHeadline" style="background-color: black; color: white;cursor: pointer;">' + macro.substr(2).trim() + '</h3><div class="macroCategoryEntries" style="position: initial; display: none;">';
+                continue;
+            }
+            var parts = macro.split('|');
+            var buttonText = '';
+            var macroText = '';
+            if (parts.length > 1) {
+                buttonText = parts.shift();
+                macroText = parts.join('|');
+            } else if (parts.length === 1) {
+                macroText = buttonText = parts[0].trim();
+            }
+            html += '<button class="macro-button" style="width: 100%; margin-bottom:8px;font-size:16px;" data-text="' + btoa(encodeURIComponent(macroText)) + '">' + buttonText + '</button>';
+        }
+        html += '</div>';
+        wrapper.innerHTML = html;
+
+        wrapper.onclick = function (e) {
+            if (e.target.id === 'macroHeadline') {
+                var macros = document.getElementById('macrosWrapper');
+                if (macros) {
+                     macros.style.display = macros.style.display === 'none' ? 'block' : 'none';
+                }
+            } else if (e.target.className === 'macro-button') {
+                var text = e.target.dataset.text;
+                if (!text) {
+                    return;
+                }
+                var decoded = decodeURIComponent(atob(text));
+                var texts = decoded.split('|');
+                sendDuelChatMessages(texts);
+            } else if (e.target.className === 'macroCategoryHeadline') {
+                var macroEntries = e.target.parentElement.querySelector('.macroCategoryEntries');
+                if (macroEntries) {
+                    macroEntries.style.display = macroEntries.style.display === 'none' ? 'block' : 'none';
+                }
+            }
+        };
+
+        document.body.appendChild(wrapper);
     }
 
     function getCurrentPlayer() {
@@ -373,73 +455,12 @@
             var cardNames = name.split('~');
             for (var cardName of cardNames) {
                 var card = player.main_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
+                console.log('add', cardName, card);
                 if (card) {
                     (window.unsafeWindow || window).Send({"action":"Duel", "play":"To hand", "card":card.data("id")});
                 }
             }
         });
-    }
-
-    function addMacroButtons() {
-        if (!isOnDb()) {
-            return
-        }
-        var id = 'macroButtons';
-        var wrapperEl = document.getElementById(id);
-        if (wrapperEl) {
-            wrapperEl.remove();
-        }
-
-        var macroTexts = GM_config.get('macroTexts');
-        if (!macroTexts) {
-            return;
-        }
-
-        var wrapper = document.createElement('div');
-        wrapper.id = id;
-        wrapper.style['z-index'] = 999999999;
-        wrapper.style.position = 'fixed';
-        wrapper.style.right = '20px';
-        wrapper.style.bottom = '20px';
-        wrapper.style.top = 'auto';
-        wrapper.style.left = 'auto';
-        wrapper.style.width = '120px';
-        wrapper.style['font-size'] = '20px';
-        var html = '<h2 id="macroHeadline" style="background-color: black; color: white;cursor: pointer;">Macros</h2><div id="macrosWrapper" style="position: initial;">';
-        var macros = macroTexts.split('\n');
-        for (var macro of macros) {
-            var parts = macro.split('|');
-            var buttonText = '';
-            var macroText = '';
-            if (parts.length > 1) {
-                buttonText = parts.shift();
-                macroText = parts.join('|');
-            } else if (parts.length === 1) {
-                macroText = buttonText = parts[0].trim();
-            }
-            html += '<button class="macro-button" style="width: 100%; margin-bottom:8px;font-size:16px;" data-text="' + btoa(encodeURIComponent(macroText)) + '">' + buttonText + '</button>';
-        }
-        html += '</div>';
-        wrapper.innerHTML = html;
-
-        wrapper.onclick = function (e) {
-            if (e.target.id === 'macroHeadline') {
-                var macros = document.getElementById('macrosWrapper');
-                if (macros) {
-                     macros.style.display = macros.style.display === 'none' ? 'block' : 'none';
-                }
-            } else if (e.target.className === 'macro-button') {
-                var text = e.target.dataset.text;
-                if (!text) {
-                    return;
-                }
-                var decoded = decodeURIComponent(atob(text));
-                var texts = decoded.split('|');
-                sendDuelChatMessages(texts);
-            }
-        };
-
-        document.body.appendChild(wrapper);
     }
 
     function getCommandFromStr(str) {

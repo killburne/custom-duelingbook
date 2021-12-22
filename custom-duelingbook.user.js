@@ -290,10 +290,8 @@
         wrapper.innerHTML = html;
 
         wrapper.onclick = function (e) {
-            console.log('click', e);
             if (e.target.id === 'macroHeadline') {
                 var macros = document.getElementById('macrosWrapper');
-                console.log('macros', macros);
                 if (macros) {
                      macros.style.display = macros.style.display === 'none' ? 'block' : 'none';
                 }

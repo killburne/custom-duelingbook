@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.22
+// @version      1.0.23
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -431,16 +431,13 @@
         }
 
         doStuffInDeck(function() {
-            var cardNames = name.split('~');
-            for (var cardName of cardNames) {
-                var card = player.main_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
-                if (card) {
-                    (window.unsafeWindow || window).menu_card = card;
-                    (window.unsafeWindow || window).cardMenuClicked(card, position);
-                    /*(window.unsafeWindow || window).summoning_card = card;
+            var card = player.main_arr.find(c => c.data('cardfront').data('name') === name);
+            if (card) {
+                (window.unsafeWindow || window).menu_card = card;
+                (window.unsafeWindow || window).cardMenuClicked(card, position);
+                /*(window.unsafeWindow || window).summoning_card = card;
 				(window.unsafeWindow || window).summoning_play = position;
 				(window.unsafeWindow || window).startChooseMonsterZones();*/
-                }
             }
         }, false);
     }

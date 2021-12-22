@@ -373,7 +373,6 @@
             var cardNames = name.split('~');
             for (var cardName of cardNames) {
                 var card = player.main_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
-                console.log('add', cardName, card);
                 if (card) {
                     (window.unsafeWindow || window).Send({"action":"Duel", "play":"To hand", "card":card.data("id")});
                 }

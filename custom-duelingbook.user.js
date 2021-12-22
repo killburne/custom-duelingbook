@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.20
+// @version      1.0.21
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -364,10 +364,16 @@
     }
 
     function addCardFromDeckToHand(name) {
+        var player = getCurrentPlayer();
+        if (!player || player.main_arr.length === 0) {
+            return;
+        }
+
         doStuffInDeck(function() {
             var cardNames = name.split('~');
             for (var cardName of cardNames) {
                 var card = player.main_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
+                console.log('add', cardName, card);
                 if (card) {
                     (window.unsafeWindow || window).Send({"action":"Duel", "play":"To hand", "card":card.data("id")});
                 }

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.18
+// @version      1.0.19
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -272,7 +272,7 @@
         wrapper.style.left = 'auto';
         wrapper.style.width = '120px';
         wrapper.style['font-size'] = '20px';
-        wrapper.innerHTML = '<h2 style="background-color: black; color: white;">Macros</h2>';
+        var html = '<h2 id="macroHeadline" style="background-color: black; color: white;cursor: pointer;">Macros</h2><div id="macrosWrapper" style="position: initial;">';
         var macros = macroTexts.split('\n');
         for (var macro of macros) {
             var parts = macro.split('|');
@@ -284,11 +284,20 @@
             } else if (parts.length === 1) {
                 macroText = buttonText = parts[0].trim();
             }
-            wrapper.innerHTML += '<button class="macro-button" style="width: 100%; margin-bottom:8px;font-size:16px;" data-text="' + btoa(encodeURIComponent(macroText)) + '">' + buttonText + '</button>';
+            html += '<button class="macro-button" style="width: 100%; margin-bottom:8px;font-size:16px;" data-text="' + btoa(encodeURIComponent(macroText)) + '">' + buttonText + '</button>';
         }
+        html += '</div>';
+        wrapper.innerHTML = html;
 
         wrapper.onclick = function (e) {
-            if (e.target.className === 'macro-button') {
+            console.log('click', e);
+            if (e.target.id === 'macroHeadline') {
+                var macros = document.getElementById('macrosWrapper');
+                console.log('macros', macros);
+                if (macros) {
+                     macros.style.display = macros.style.display === 'none' ? 'block' : 'none';
+                }
+            } else if (e.target.className === 'macro-button') {
                 var text = e.target.dataset.text;
                 if (!text) {
                     return;
@@ -548,6 +557,10 @@
             return;
         }
         initDone = true;
+
+        restoreDuelVSP = function() {
+            $('#duel .cout_txt').scrollTop($('#duel .cout_txt').scrollMax());
+        }
 
         var config = {attributes: true, childList: true, characterData: true, subtree: true};
         var target = document.querySelector('body');

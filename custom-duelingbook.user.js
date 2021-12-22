@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.19
+// @version      1.0.20
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -179,7 +179,9 @@
                 'CHET | Stop cheating\n' +
                 'GG | gg ez noob\n' +
                 'LP/2 | /sub ${halfOfLP}\n' +
-                'LP*2 | /add ${currentLP}'
+                'LP*2 | /add ${currentLP}\n' +
+                'SS Driver | ${specialFromDeckInAtkRandomZone(PSY-Frame Driver)}\n' +
+                'Send DPE Garnets | ${sendFromDeckToGY(Destiny HERO - Celestial~Destiny HERO - Dasher)}'
             }
         },
         events: {
@@ -239,12 +241,138 @@
 
     function sendDuelChatMessages(messages) {
         var message = messages.shift();
-        (window.unsafeWindow || window).Send({"action":"Duel", "play":"Duel message", "message":message.trim(), "html":0});
+        var cmd = getCommandFromStr(message);
+        if (cmd) {
+            switch (cmd.command) {
+                case 'addFromDeckToHand':
+                    if (cmd.param) {
+                        addCardFromDeckToHand(cmd.param);
+                    }
+                    break;
+                case 'waitInMs':
+                    if (cmd.param) {
+                        setTimeout(function() {
+                           sendDuelChatMessages(messages);
+                        }, cmd.param);
+                    }
+                    return;
+                case 'specialFromDeckInAtk':
+                    if (cmd.param) {
+                        specialSummonFromDeck(cmd.param, 'SS ATK');
+                    }
+                    return;
+                case 'specialFromDeckInDef':
+                    if (cmd.param) {
+                        specialSummonFromDeck(cmd.param, 'SS DEF');
+                    }
+                    return;
+                case 'specialFromDeckInAtkRandomZone':
+                    if (cmd.param) {
+                        specialSummonFromDeckRandomZone(cmd.param, 'SS ATK');
+                    }
+                    break;
+                case 'specialFromDeckInDefRandomZone':
+                    if (cmd.param) {
+                        specialSummonFromDeckRandomZone(cmd.param, 'SS DEF');
+                    }
+                    break;
+                case 'sendFromDeckToGY':
+                    if (cmd.param) {
+                        sendFromDeckToGY(cmd.param);
+                    }
+                    break;
+            }
+        } else {
+            (window.unsafeWindow || window).Send({"action":"Duel", "play":"Duel message", "message":replaceVariablesInStr(message.trim()), "html":0});
+        }
         if (messages.length > 0) {
             setTimeout(function() {
                sendDuelChatMessages(messages);
             }, 80);
         }
+    }
+
+    function doStuffInDeck(cb, exit) {
+        exit = typeof exit === 'undefined'? true : exit;
+        var player = getCurrentPlayer();
+        if (!player || player.main_arr.length === 0) {
+            return;
+        }
+
+        (window.unsafeWindow || window).Send({"action":"Duel", "play":"View deck", "card":player.main_arr[0].data('id')});
+        setTimeout(function() {
+            cb();
+            if (exit) {
+                (window.unsafeWindow || window).exitViewing();
+            }
+        }, 500);
+    }
+
+    function sendFromDeckToGY(name) {
+        var player = getCurrentPlayer();
+        if (!player || player.main_arr.length === 0) {
+            return;
+        }
+
+        doStuffInDeck(function() {
+            var cardNames = name.split('~');
+            for (var cardName of cardNames) {
+                var card = player.main_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
+                if (card) {
+                    (window.unsafeWindow || window).Send({"action":"Duel", "play":"To GY", "card":card.data('id')});
+                }
+            }
+        });
+    }
+
+    function specialSummonFromDeckRandomZone(name, position) {
+        var player = getCurrentPlayer();
+        if (!player || player.main_arr.length === 0 || !(window.unsafeWindow || window).hasAvailableMonsterZones(player)) {
+            return;
+        }
+
+        doStuffInDeck(function() {
+            var cardNames = name.split('~');
+            for (var cardName of cardNames) {
+                var card = player.main_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
+                if (card) {
+                    (window.unsafeWindow || window).Send({"action":"Duel", "play":position, "card":card.data('id')});
+                }
+            }
+        });
+    }
+
+    function specialSummonFromDeck(name, position) {
+        var player = getCurrentPlayer();
+        if (!player || player.main_arr.length === 0 || !(window.unsafeWindow || window).hasAvailableMonsterZones(player)) {
+            return;
+        }
+
+        doStuffInDeck(function() {
+            var cardNames = name.split('~');
+            for (var cardName of cardNames) {
+                var card = player.main_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
+                if (card) {
+                    (window.unsafeWindow || window).menu_card = card;
+                    (window.unsafeWindow || window).cardMenuClicked(card, position);
+                    /*(window.unsafeWindow || window).summoning_card = card;
+				(window.unsafeWindow || window).summoning_play = position;
+				(window.unsafeWindow || window).startChooseMonsterZones();*/
+                }
+            }
+        }, false);
+    }
+
+    function addCardFromDeckToHand(name) {
+        doStuffInDeck(function() {
+            var cardNames = name.split('~');
+            for (var cardName of cardNames) {
+                var card = player.main_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
+                if (card) {
+                    (window.unsafeWindow || window).Send({"action":"Duel", "play":"To hand", "card":card.data("id")});
+                }
+            }
+        });
     }
 
     function addMacroButtons() {
@@ -301,12 +429,23 @@
                     return;
                 }
                 var decoded = decodeURIComponent(atob(text));
-                var texts = replaceVariablesInStr(decoded).split('|');
+                var texts = decoded.split('|');
                 sendDuelChatMessages(texts);
             }
         };
 
         document.body.appendChild(wrapper);
+    }
+
+    function getCommandFromStr(str) {
+        var match = str.match(/\$\{([^(]+)\((.*)\)\}/);
+        if (!match) {
+            return;
+        }
+        return {
+            command: match[1],
+            param: match[2]
+        };
     }
 
     function replaceVariablesInStr(str) {

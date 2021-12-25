@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.23
+// @version      1.0.24
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -171,23 +171,23 @@
                 label: 'Macro texts (Button Text | Text to send)',
                 type: 'textarea',
                 cols: 300,
-                rows: 10,
-                default: '-- Chatting\n' +
-                ':)\n' +
-                "Hello | Hello ${topUsername} :) I'm the real ${botUsername}\n" +
-                'TOO LATE | Sorry iz too late\n' +
-                '🤡\n' +
-                'CHET | Stop cheating\n' +
-                'GG | gg ez noob\n' +
+                rows: 20,
+                default: 
+                'Hello | Hello ${topUsername}, good luck have fun.\n' +
+                'CHAIN | I\'ll chain to that.\n' +
                 '-- LP\n' +
                 'LP/2 | /sub ${halfOfLP}\n' +
-                'LP*2 | /add ${currentLP}\n' +
                 '-- SS\n' +
-                'SS Driver | ${specialFromDeckInAtkRandomZone(PSY-Frame Driver)}\n' +
-                'SS Driver Def | ${specialFromDeckInDefRandomZone(PSY-Frame Driver)}\n' +
+                'SS Driver Zone | ${specialFromDeckInAtk(PSY-Frame Driver)}\n' +
+                'SS Driver | ${specialFromDeckInAtkRandomZone(PSY-Frame Driver)} | Thinking on zone\n' +
+                'SS Driver Def | ${specialFromDeckInDefRandomZone(PSY-Frame Driver)} | Thinking on zone\n' +
                 '-- Deck to GY\n' +
+                'Mill 1 | /mill 1\n' +
+                'Verte Fusion Destiny | /sub 2000 | ${sendFromDeckToGY(Fusion Destiny)}\n' +
                 'Send DPE Garnets | ${sendFromDeckToGY(Destiny HERO - Celestial~Destiny HERO - Dasher)}\n' +
-                'Send Dragoon Garnets | ${sendFromDeckToGY(Dark Magician~Red-Eyes Black Dragon)}'
+                'Send Dragoon Garnets | ${sendFromDeckToGY(Dark Magician~Red-Eyes Black Dragon)}\n' +
+                '-- Search\n' +
+                'Add Invo | ${addFromDeckToHand(Invocation)}'
             }
         },
         events: {

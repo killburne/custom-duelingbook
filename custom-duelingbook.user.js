@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.24
+// @version      1.0.25
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -175,6 +175,7 @@
                 default: 
                 'Hello | Hello ${topUsername}, good luck have fun.\n' +
                 'CHAIN | I\'ll chain to that.\n' +
+                'Nibiru :( | The total stats of all monsters on the field that i can see are ${atkAllMonsters} ATK / ${defAllMonsters} DEF | ${sendAllControllingMonstersFromFieldToGY()} | ${specialSummonToken()}\n' +
                 '-- LP\n' +
                 'LP/2 | /sub ${halfOfLP}\n' +
                 '-- SS\n' +
@@ -256,6 +257,9 @@
         var macros = macroTexts.split('\n');
         let isInCategory = false;
         for (var macro of macros) {
+            if (!macro.trim()) {
+                continue;
+            }
             if (macro.indexOf('--') === 0) {
                 if (isInCategory) {
                     html += '</div></div>';
@@ -363,6 +367,47 @@
                         sendFromDeckToGY(cmd.param);
                     }
                     break;
+                case 'specialFromExtraDeckInAtk':
+                    if (cmd.param) {
+                        specialSummonFromExtraDeck(cmd.param, 'SS ATK');
+                    }
+                    return;
+                case 'specialFromExtraDeckInDef':
+                    if (cmd.param) {
+                        specialSummonFromExtraDeck(cmd.param, 'SS DEF');
+                    }
+                    return;
+                case 'specialFromExtraDeckInAtkRandomZone':
+                    if (cmd.param) {
+                        specialSummonFromExtraDeckRandomZone(cmd.param, 'SS ATK');
+                    }
+                    break;
+                case 'specialFromExtraDeckInDefRandomZone':
+                    if (cmd.param) {
+                        specialSummonFromExtraDeckRandomZone(cmd.param, 'SS DEF');
+                    }
+                    break;
+                case 'sendFromExtraDeckToGY':
+                    if (cmd.param) {
+                        sendFromExtraDeckToGY(cmd.param);
+                    }
+                    break;
+                case 'specialSummonToken':
+                    specialSummonToken();
+                    break;
+                case 'sendAllControllingMonstersFromFieldToGY':
+                    sendOwnMonstersFromFieldToGY(cmd.param);
+                    break;
+                case 'sendFromFieldToGY':
+                    if (cmd.param) {
+                        sendFromFieldToGY(cmd.param);
+                    }
+                    break;
+                case 'banishFromGY':
+                    if (cmd.param) {
+                        banishFromGY(cmd.param);
+                    }
+                    break;
             }
         } else {
             (window.unsafeWindow || window).Send({"action":"Duel", "play":"Duel message", "message":replaceVariablesInStr(message.trim()), "html":0});
@@ -372,6 +417,97 @@
                sendDuelChatMessages(messages);
             }, 80);
         }
+    }
+
+    function banishFromGY(name) {
+        var player = getCurrentPlayer();
+        if (!player || player.grave_arr.length === 0) {
+            return;
+        }
+        var cardNames = name.split('~');
+        for (var cardName of cardNames) {
+            var card = player.grave_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
+            if (card) {
+                (window.unsafeWindow || window).Send({"action":"Duel", "play":"Banish", "card":card.data('id')});
+            }
+        }
+    }
+
+    function getOwnControlledMonsters() {
+        var player = getCurrentPlayer();
+        var zones = [player.m1, player.m2, player.m3, player.m4, player.m5, (window.unsafeWindow || window).linkLeft, (window.unsafeWindow || window).linkRight];
+        return zones.filter(function (card) {
+            return card && card.data('controller').username === player.username;
+        });
+    }
+
+    function getOpponentsControlledMonsters() {
+        var player = getCurrentPlayer();
+        var opponent = player.opponent;
+        var zones = [opponent.m1, opponent.m2, opponent.m3, opponent.m4, opponent.m5, (window.unsafeWindow || window).linkLeft, (window.unsafeWindow || window).linkRight];
+        return zones.filter(function (card) {
+            return card && card.data('controller').username === opponent.username;
+        });
+    }
+
+    function getOwnSpellsAndTrapsOnField() {
+        var player = getCurrentPlayer();
+        return [player.s1, player.s2, player.s3, player.s4, player.s5].filter(function (card) {
+            return !!card;
+        });
+    }
+
+    function sendOwnMonstersFromFieldToGY(position) {
+        var monstersOnField = getOwnControlledMonsters();
+        var checkPosition = false;
+        if (position) {
+            if (position.toLowerCase() === 'atk') {
+                checkPosition = 'inATK';
+            } else if (position.toLowerCase() === 'def') {
+                checkPosition = 'inDEF';
+            }
+        }
+
+        for (var card of monstersOnField) {
+            if (checkPosition && !card.data(checkPosition)) {
+                continue;
+            }
+            (window.unsafeWindow || window).Send({"action":"Duel", "play":"To GY", "card":card.data('id')});
+        }
+    }
+
+    function sendFromFieldToGY(name) {
+        var cardsOnField = getOwnControlledMonsters().concat(getOwnSpellsAndTrapsOnField());
+        console.log('cardsOnField', cardsOnField);
+        var cardNames = name.split('~');
+        for (var cardName of cardNames) {
+            var card = cardsOnField.find(c => c.data('cardfront').data('name') === cardName.trim());
+            if (card) {
+                (window.unsafeWindow || window).Send({"action":"Duel", "play":"To GY", "card":card.data('id')});
+            }
+        }
+    }
+
+    function calculateAtkAllMonstersOnField() {
+        var allMonsters = getOwnControlledMonsters().concat(getOpponentsControlledMonsters());
+        var atk = 0;
+        for (var card of allMonsters) {
+            atk += parseInt(card.data('cardfront').data('atk')) || 0;
+        }
+        return atk;
+    }
+
+    function calculateDefAllMonstersOnField() {
+        var allMonsters = getOwnControlledMonsters().concat(getOpponentsControlledMonsters());
+        var def = 0;
+        for (var card of allMonsters) {
+            def += parseInt(card.data('cardfront').data('def')) || 0;
+        }
+        return def;
+    }
+
+    function specialSummonToken() {
+        (window.unsafeWindow || window).tokenE();
     }
 
     function doStuffInDeck(cb, exit) {
@@ -388,6 +524,74 @@
                 (window.unsafeWindow || window).exitViewing();
             }
         }, 500);
+    }
+
+    function doStuffInExtraDeck(cb, exit) {
+        exit = typeof exit === 'undefined'? true : exit;
+        var player = getCurrentPlayer();
+        if (!player || player.extra_arr.length === 0) {
+            return;
+        }
+
+        (window.unsafeWindow || window).Send({"action":"Duel", "play":"View ED", "card":player.extra_arr[0].data('id')});
+        setTimeout(function() {
+            cb();
+            if (exit) {
+                (window.unsafeWindow || window).exitViewing();
+            }
+        }, 500);
+    }
+
+    function sendFromExtraDeckToGY(name) {
+        var player = getCurrentPlayer();
+        if (!player || player.extra_arr.length === 0) {
+            return;
+        }
+
+        doStuffInExtraDeck(function() {
+            var cardNames = name.split('~');
+            for (var cardName of cardNames) {
+                var card = player.extra_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
+                if (card) {
+                    (window.unsafeWindow || window).Send({"action":"Duel", "play":"To GY", "card":card.data('id')});
+                }
+            }
+        });
+    }
+
+    function specialSummonFromExtraDeckRandomZone(name, position) {
+        var player = getCurrentPlayer();
+        if (!player || player.extra_arr.length === 0 || !(window.unsafeWindow || window).hasAvailableMonsterZones(player)) {
+            return;
+        }
+
+        doStuffInExtraDeck(function() {
+            var cardNames = name.split('~');
+            for (var cardName of cardNames) {
+                var card = player.extra_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
+                if (card) {
+                    (window.unsafeWindow || window).Send({"action":"Duel", "play":position, "card":card.data('id')});
+                }
+            }
+        });
+    }
+
+    function specialSummonFromExtraDeck(name, position) {
+        var player = getCurrentPlayer();
+        if (!player || player.extra_arr.length === 0 || !(window.unsafeWindow || window).hasAvailableMonsterZones(player)) {
+            return;
+        }
+
+        doStuffInExtraDeck(function() {
+            var card = player.extra_arr.find(c => c.data('cardfront').data('name') === name);
+            if (card) {
+                (window.unsafeWindow || window).menu_card = card;
+                (window.unsafeWindow || window).cardMenuClicked(card, position);
+                /*(window.unsafeWindow || window).summoning_card = card;
+				(window.unsafeWindow || window).summoning_play = position;
+				(window.unsafeWindow || window).startChooseMonsterZones();*/
+            }
+        }, false);
     }
 
     function sendFromDeckToGY(name) {
@@ -491,6 +695,10 @@
                         lp2 = player2.lifepoints;
                     }
                     return lp2;
+                case 'atkAllMonsters':
+                    return calculateAtkAllMonstersOnField();
+                case 'defAllMonsters':
+                    return calculateDefAllMonstersOnField();
             }
             return '';
         });

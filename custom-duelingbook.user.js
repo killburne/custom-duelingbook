@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.1
+// @version      1.1.2
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -20,7 +20,7 @@
 // @connect *
 // ==/UserScript==
 
-const version = '1.1.1';
+const version = '1.1.2';
 
 (function() {
     'use strict';
@@ -335,6 +335,7 @@ const version = '1.1.1';
         const message = messages.shift();
         const cmd = getCommandFromStr(message);
         let timeToWait = 250;
+        console.log('execute command', cmd);
         if (cmd) {
             switch (cmd.command) {
                 case 'addFromDeckToHand':
@@ -804,11 +805,12 @@ const version = '1.1.1';
 
             (window.unsafeWindow || window).viewing = 'Deck';
             (window.unsafeWindow || window).Send({action:'Duel', play:'View deck', card:player.main_arr[0].data('id')});
-            setTimeout(() => {
+            setTimeout(async () => {
                 cb();
                 if (exit) {
                     (window.unsafeWindow || window).exitViewing();
                 }
+                await waitMs(250);
                 accept();
             }, 500);
         });
@@ -825,11 +827,12 @@ const version = '1.1.1';
 
             (window.unsafeWindow || window).viewing = 'Extra Deck';
             (window.unsafeWindow || window).Send({action:'Duel', play:'View ED', card:player.extra_arr[0].data('id')});
-            setTimeout(function() {
+            setTimeout(async () => {
                 cb();
                 if (exit) {
                     (window.unsafeWindow || window).exitViewing();
                 }
+                await waitMs(250);
                 accept();
             }, 500);
         });

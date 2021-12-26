@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.3
+// @version      1.1.4
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -20,7 +20,7 @@
 // @connect *
 // ==/UserScript==
 
-const version = '1.1.3';
+const version = '1.1.4';
 
 (function() {
     'use strict';
@@ -466,6 +466,7 @@ const version = '1.1.3';
                             await activateSpellTrapFromDeckToZone(params.shift(), params);
                         }
                     }
+                    break;
                 case 'specialFromGYInAtk':
                     if (cmd.param) {
                         await specialFromGY(cmd.param, 'SS ATK');

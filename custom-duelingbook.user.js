@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.26
+// @version      1.1.0
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -199,15 +199,15 @@
         }
     });
 
-    var bannedWords = [];
+    let bannedWords = [];
 
     function addSettingsButton() {
         if (!isOnDb()) {
             return
         }
-        var id = 'streamerDbSettings';
+        const id = 'streamerDbSettings';
         if (!document.getElementById(id)) {
-            var wrapper = document.createElement('div');
+            const wrapper = document.createElement('div');
             wrapper.id = id;
             wrapper.title = 'Streamer Friendly DB';
             wrapper.style.position = 'fixed';
@@ -232,18 +232,18 @@
         if (!isOnDb()) {
             return
         }
-        var id = 'macroButtons';
-        var wrapperEl = document.getElementById(id);
+        const id = 'macroButtons';
+        const wrapperEl = document.getElementById(id);
         if (wrapperEl) {
             wrapperEl.remove();
         }
 
-        var macroTexts = GM_config.get('macroTexts');
+        const macroTexts = GM_config.get('macroTexts');
         if (!macroTexts) {
             return;
         }
 
-        var wrapper = document.createElement('div');
+        const wrapper = document.createElement('div');
         wrapper.id = id;
         wrapper.style['z-index'] = 999999999;
         wrapper.style.position = 'fixed';
@@ -253,10 +253,10 @@
         wrapper.style.left = 'auto';
         wrapper.style.width = '120px';
         wrapper.style['font-size'] = '20px';
-        var html = '<h2 id="macroHeadline" style="background-color: black; color: white;cursor: pointer;">Macros</h2><div id="macrosWrapper" style="position: initial; display: none;">';
-        var macros = macroTexts.split('\n');
+        let html = '<h2 id="macroHeadline" style="background-color: black; color: white;cursor: pointer;">Macros</h2><div id="macrosWrapper" style="position: initial; display: none;">';
+        const macros = macroTexts.split('\n');
         let isInCategory = false;
-        for (var macro of macros) {
+        for (const macro of macros) {
             if (!macro.trim()) {
                 continue;
             }
@@ -268,9 +268,9 @@
                 html += '<div class="macroCategory" style="position: initial;"><h3 class="macroCategoryHeadline" style="background-color: black; color: white;cursor: pointer;">' + macro.substr(2).trim() + '</h3><div class="macroCategoryEntries" style="position: initial; display: none;">';
                 continue;
             }
-            var parts = macro.split('|');
-            var buttonText = '';
-            var macroText = '';
+            const parts = macro.split('|');
+            let buttonText = '';
+            let macroText = '';
             if (parts.length > 1) {
                 buttonText = parts.shift();
                 macroText = parts.join('|');
@@ -284,20 +284,20 @@
 
         wrapper.onclick = function (e) {
             if (e.target.id === 'macroHeadline') {
-                var macros = document.getElementById('macrosWrapper');
+                const macros = document.getElementById('macrosWrapper');
                 if (macros) {
                      macros.style.display = macros.style.display === 'none' ? 'block' : 'none';
                 }
             } else if (e.target.className === 'macro-button') {
-                var text = e.target.dataset.text;
+                const text = e.target.dataset.text;
                 if (!text) {
                     return;
                 }
-                var decoded = decodeURIComponent(atob(text));
-                var texts = decoded.split('|');
+                const decoded = decodeURIComponent(atob(text));
+                const texts = decoded.split('|');
                 sendDuelChatMessages(texts);
             } else if (e.target.className === 'macroCategoryHeadline') {
-                var macroEntries = e.target.parentElement.querySelector('.macroCategoryEntries');
+                const macroEntries = e.target.parentElement.querySelector('.macroCategoryEntries');
                 if (macroEntries) {
                     macroEntries.style.display = macroEntries.style.display === 'none' ? 'block' : 'none';
                 }
@@ -308,166 +308,356 @@
     }
 
     function getCurrentPlayer() {
-        var win = (window.unsafeWindow || window);
-        var player;
+        let win = (window.unsafeWindow || window);
+        let player;
         if (win.user_username == win.player1.username) {
-            player = player1;
+            player = win.player1;
         }
         else if (win.user_username == win.player2.username) {
-            player = player2;
+            player = win.player2;
         }
         else if (win.tag_duel && win.user_username == win.player3.username) {
-            player = player3;
+            player = win.player3;
         }
         else if (win.tag_duel && win.user_username == win.player4.username) {
-            player = player4;
+            player = win.player4;
         }
         return player;
     }
 
-    function sendDuelChatMessages(messages) {
-        var message = messages.shift();
-        var cmd = getCommandFromStr(message);
+    function waitMs(ms) {
+        return new Promise((accept) => {
+            setTimeout(() => accept(), parseInt(ms) || 100);
+        });
+    }
+
+    async function sendDuelChatMessages(messages) {
+        const message = messages.shift();
+        const cmd = getCommandFromStr(message);
+        let timeToWait = 250;
         if (cmd) {
             switch (cmd.command) {
                 case 'addFromDeckToHand':
                     if (cmd.param) {
-                        addCardFromDeckToHand(cmd.param);
+                        await addCardFromDeckToHand(cmd.param);
                     }
                     break;
                 case 'waitInMs':
                     if (cmd.param) {
-                        setTimeout(function() {
-                           sendDuelChatMessages(messages);
-                        }, cmd.param);
+                        timeToWait = parseInt(cmd.param) || 100;
                     }
-                    return;
+                    break;
                 case 'specialFromDeckInAtk':
                     if (cmd.param) {
-                        specialSummonFromDeck(cmd.param, 'SS ATK');
+                        await specialSummonFromDeck(cmd.param, 'SS ATK');
                     }
                     return;
                 case 'specialFromDeckInDef':
                     if (cmd.param) {
-                        specialSummonFromDeck(cmd.param, 'SS DEF');
+                        await specialSummonFromDeck(cmd.param, 'SS DEF');
                     }
                     return;
                 case 'specialFromDeckInAtkRandomZone':
                     if (cmd.param) {
-                        specialSummonFromDeckRandomZone(cmd.param, 'SS ATK');
+                        await specialSummonFromDeckRandomZone(cmd.param, 'SS ATK');
                     }
                     break;
                 case 'specialFromDeckInDefRandomZone':
                     if (cmd.param) {
-                        specialSummonFromDeckRandomZone(cmd.param, 'SS DEF');
+                        await specialSummonFromDeckRandomZone(cmd.param, 'SS DEF');
+                    }
+                    break;
+                case 'specialFromDeckInAtkToZone':
+                    if (cmd.param) {
+                        const params = cmd.param.split('~');
+                        if (params.length >= 2) {
+                            await specialSummonFromDeckToZone(params.shift(), 'SS ATK', params);
+                        }
+                    }
+                    break;
+                case 'specialFromDeckInDefToZone':
+                    if (cmd.param) {
+                        const params = cmd.param.split('~');
+                        if (params.length >= 2) {
+                            await specialSummonFromDeckToZone(params.shift(), 'SS DEF', params);
+                        }
                     }
                     break;
                 case 'sendFromDeckToGY':
                     if (cmd.param) {
-                        sendFromDeckToGY(cmd.param);
+                        await sendFromDeckToGY(cmd.param);
                     }
                     break;
                 case 'specialFromExtraDeckInAtk':
                     if (cmd.param) {
-                        specialSummonFromExtraDeck(cmd.param, 'SS ATK');
+                        await specialSummonFromExtraDeck(cmd.param, 'SS ATK');
                     }
                     return;
                 case 'specialFromExtraDeckInDef':
                     if (cmd.param) {
-                        specialSummonFromExtraDeck(cmd.param, 'SS DEF');
+                        await specialSummonFromExtraDeck(cmd.param, 'SS DEF');
                     }
                     return;
                 case 'specialFromExtraDeckInAtkRandomZone':
                     if (cmd.param) {
-                        specialSummonFromExtraDeckRandomZone(cmd.param, 'SS ATK');
+                        await specialSummonFromExtraDeckRandomZone(cmd.param, 'SS ATK');
                     }
                     break;
                 case 'specialFromExtraDeckInDefRandomZone':
                     if (cmd.param) {
-                        specialSummonFromExtraDeckRandomZone(cmd.param, 'SS DEF');
+                        await specialSummonFromExtraDeckRandomZone(cmd.param, 'SS DEF');
+                    }
+                    break;
+                case 'specialFromExtraDeckInAtkToZone':
+                    if (cmd.param) {
+                        const params = cmd.param.split('~');
+                        if (params.length >= 2) {
+                            await specialSummonFromExtraDeckToZone(params.shift(), 'SS ATK', params);
+                        }
+                    }
+                    break;
+                case 'specialFromExtraDeckInDefToZone':
+                    if (cmd.param) {
+                        const params = cmd.param.split('~');
+                        if (params.length >= 2) {
+                            await specialSummonFromExtraDeckToZone(params.shift(), 'SS DEF', params);
+                        }
                     }
                     break;
                 case 'sendFromExtraDeckToGY':
                     if (cmd.param) {
-                        sendFromExtraDeckToGY(cmd.param);
+                        await sendFromExtraDeckToGY(cmd.param);
                     }
                     break;
                 case 'specialSummonToken':
-                    specialSummonToken();
+                    await specialSummonToken();
                     break;
                 case 'sendAllControllingMonstersFromFieldToGY':
-                    sendOwnMonstersFromFieldToGY(cmd.param);
+                    await sendOwnMonstersFromFieldToGY(cmd.param);
                     break;
                 case 'sendAllOwnSpellTrapsFromFieldToGY':
-                    sendOwnSpellTrapsFromFieldToGY();
+                    await sendOwnSpellTrapsFromFieldToGY();
                     break;
                 case 'sendFromFieldToGY':
                     if (cmd.param) {
-                        sendFromFieldToGY(cmd.param);
+                        await sendFromFieldToGY(cmd.param);
                     }
                     break;
                 case 'banishFromGY':
                     if (cmd.param) {
-                        banishFromGY(cmd.param);
+                        await banishFromGY(cmd.param);
                     }
                     break;
                 case 'activateSpellTrapFromDeck':
                     if (cmd.param) {
-                        activateSpellTrapFromDeck(cmd.param);
+                        await activateSpellTrapFromDeck(cmd.param);
                     }
                     break;
                 case 'specialFromGYInAtk':
                     if (cmd.param) {
-                        specialFromGY(cmd.param, 'SS ATK');
+                        await specialFromGY(cmd.param, 'SS ATK');
                     }
-                    break;
+                    return;
                 case 'specialFromGYInDef':
                     if (cmd.param) {
-                        specialFromGY(cmd.param, 'SS DEF');
+                        await specialFromGY(cmd.param, 'SS DEF');
                     }
-                    break;
+                    return;
                 case 'specialFromGYInAtkRandomZone':
                     if (cmd.param) {
-                        specialFromGYRandomZone(cmd.param, 'SS ATK');
+                        await specialFromGYRandomZone(cmd.param, 'SS ATK');
                     }
                     break;
                 case 'specialFromGYInDefRandomZone':
                     if (cmd.param) {
-                        specialFromGYRandomZone(cmd.param, 'SS DEF');
+                        await specialFromGYRandomZone(cmd.param, 'SS DEF');
+                    }
+                    break;
+                case 'specialFromGYInAtkToZone':
+                    if (cmd.param) {
+                        const params = cmd.param.split('~');
+                        if (params.length >= 2) {
+                            await specialFromGYToZone(params.shift(), 'SS ATK', params);
+                        }
+                    }
+                    break
+                case 'specialFromGYInDefToZone':
+                    if (cmd.param) {
+                        const params = cmd.param.split('~');
+                        if (params.length >= 2) {
+                            await specialFromGYToZone(params.shift(), 'SS DEF', params);
+                        }
+                    }
+                    break
+                case 'discard':
+                    if (cmd.param) {
+                        await sendFromHandToGY(cmd.param);
+                    }
+                    break;
+                case 'addFromGYToHand':
+                    if (cmd.param) {
+                        await addToHandFromGY(cmd.param);
+                    }
+                    break;
+                case 'fromBanishToTopOfDeck':
+                    if (cmd.param) {
+                        await fromBanishToTopOfDeck(cmd.param);
+                    }
+                    break;
+                case 'fromGYToTopOfDeck':
+                    if (cmd.param) {
+                        await fromGYToTopOfDeck(cmd.param);
+                    }
+                    break;
+                case 'fromFieldToTopOfDeck':
+                    if (cmd.param) {
+                        await fromFieldToTopOfDeck(cmd.param);
+                    }
+                    break;
+                case 'shuffleDeck':
+                    await shuffleDeck();
+                    break;
+                case 'moveZone':
+                    if (cmd.param) {
+                        const params = cmd.param.split('~');
+                        if (params.length >= 2) {
+                            await moveZone(params.shift(), params);
+                        }
+                    }
+                    break;
+                case 'overlayMonsters':
+                    if (cmd.param) {
+                        const params = cmd.param.split('~');
+                        if (params.length >= 2) {
+                            await overlayMonsters(params.shift(), params);
+                        }
                     }
                     break;
             }
         } else {
-            (window.unsafeWindow || window).Send({"action":"Duel", "play":"Duel message", "message":replaceVariablesInStr(message.trim()), "html":0});
+            (window.unsafeWindow || window).Send({action:'Duel', play:'Duel message', message:replaceVariablesInStr(message.trim()), html:0});
         }
         if (messages.length > 0) {
-            setTimeout(function() {
-               sendDuelChatMessages(messages);
-            }, 80);
+            await waitMs(timeToWait);
+            sendDuelChatMessages(messages);
         }
     }
 
-    function banishFromGY(name) {
-        var player = getCurrentPlayer();
+    async function banishFromGY(name) {
+        const player = getCurrentPlayer();
         if (!player || player.grave_arr.length === 0) {
             return;
         }
-        var cardNames = name.split('~');
-        for (var cardName of cardNames) {
-            var card = player.grave_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
+        const cardNames = name.split('~');
+        for (const cardName of cardNames) {
+            const card = player.grave_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
             if (card) {
-                (window.unsafeWindow || window).Send({"action":"Duel", "play":"Banish", "card":card.data('id')});
+                (window.unsafeWindow || window).Send({action:'Duel', play:'Banish', card:card.data('id')});
             }
         }
     }
 
-    function specialFromGY(name, position) {
-        var player = getCurrentPlayer();
+    async function shuffleDeck() {
+        const player = getCurrentPlayer();
+        if (!player || player.main_arr.length === 0) {
+            return;
+        }
+        (window.unsafeWindow || window).Send({action:'Duel', play:'Shuffle deck', card:player.extra_arr[0].data('id')});
+    }
+
+    async function addToHandFromGY(name) {
+        const player = getCurrentPlayer();
+        if (!player || player.grave_arr.length === 0) {
+            return;
+        }
+
+        const cardNames = name.split('~');
+        for (const cardName of cardNames) {
+            const card = player.grave_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
+            if (card) {
+                (window.unsafeWindow || window).Send({action:'Duel', play:'To hand', card:card.data("id")});
+            }
+        }
+    }
+
+    async function moveZone(name, zones) {
+        const cardsOnField = getOwnControlledMonsters().concat(getOwnSpellsAndTrapsOnField());
+
+        const card = cardsOnField.find((c) => c.data('cardfront').data('name') === name.trim());
+        if (card) {
+            for (const zone of normalizeZones(zones)) {
+                if (!isZoneEmpty(zone)) {
+                    continue;
+                }
+                (window.unsafeWindow || window).Send({action:'Duel', play:'Move', card:card.data('id'), zone:zone});
+                break;
+            }
+        }
+    }
+
+    async function overlayMonsters(name, materials) {
+        const cardsOnField = getOwnControlledMonsters();
+
+        const card = cardsOnField.find((c) => c.data('cardfront').data('name') === name.trim());
+        if (card) {
+            for (const material of materials) {
+                const cardMaterial = cardsOnField.find((c) => c.data('cardfront').data('name') === material.trim());
+                if (cardMaterial && cardMaterial.data('id') !== card.data('id')) {
+                    (window.unsafeWindow || window).Send({action:'Duel', play:'Overlay', start_card:card.data('id'), end_card: cardMaterial.data('id')});
+                }
+            }
+        }
+    }
+
+    async function fromFieldToTopOfDeck(name) {
+        const cardsOnField = getOwnControlledMonsters().concat(getOwnSpellsAndTrapsOnField());
+
+        const cardNames = name.split('~');
+        for (const cardName of cardNames) {
+            const card = cardsOnField.find((c) => c.data('cardfront').data('name') === cardName.trim());
+            if (card) {
+                (window.unsafeWindow || window).Send({action:'Duel', play:'To T Deck', card:card.data("id")});
+            }
+        }
+    }
+
+    async function fromGYToTopOfDeck(name) {
+        const player = getCurrentPlayer();
+        if (!player || player.grave_arr.length === 0) {
+            return;
+        }
+
+        const cardNames = name.split('~');
+        for (const cardName of cardNames) {
+            const card = player.grave_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
+            if (card) {
+                (window.unsafeWindow || window).Send({action:'Duel', play:'To T Deck', card:card.data("id")});
+            }
+        }
+    }
+
+    async function fromBanishToTopOfDeck(name) {
+        const player = getCurrentPlayer();
+        if (!player || player.banished_arr.length === 0) {
+            return;
+        }
+
+        const cardNames = name.split('~');
+        for (const cardName of cardNames) {
+            const card = player.banished_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
+            if (card) {
+                (window.unsafeWindow || window).Send({action:'Duel', play:'To T Deck', card:card.data("id")});
+            }
+        }
+    }
+
+    async function specialFromGY(name, position) {
+        const player = getCurrentPlayer();
         if (!player || player.grave_arr.length === 0 || !(window.unsafeWindow || window).hasAvailableMonsterZones(player)) {
             return;
         }
 
-        var card = player.grave_arr.find(c => c.data('cardfront').data('name') === name);
+        const card = player.grave_arr.find((c) => c.data('cardfront').data('name') === name);
         if (card) {
             (window.unsafeWindow || window).menu_card = card;
             (window.unsafeWindow || window).cardMenuClicked(card, position);
@@ -477,48 +667,75 @@
         }
     }
 
-    function specialFromGYRandomZone(name, position) {
-        var player = getCurrentPlayer();
+    async function specialFromGYToZone(name, position, zones) {
+        const player = getCurrentPlayer();
         if (!player || player.grave_arr.length === 0 || !(window.unsafeWindow || window).hasAvailableMonsterZones(player)) {
             return;
         }
 
-        var cardNames = name.split('~');
-        for (var cardName of cardNames) {
-            var card = player.grave_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
+        const card = player.grave_arr.find((c) => c.data('cardfront').data('name') === name.trim());
+        if (card) {
+            for (const zone of normalizeZones(zones)) {
+                if (!isZoneEmpty(zone)) {
+                    continue;
+                }
+                (window.unsafeWindow || window).Send({action:'Duel', play:position, card:card.data('id'), zone:zone});
+                break;
+            }
+        }
+    }
+
+    async function specialFromGYRandomZone(name, position) {
+        const player = getCurrentPlayer();
+        if (!player || player.grave_arr.length === 0 || !(window.unsafeWindow || window).hasAvailableMonsterZones(player)) {
+            return;
+        }
+
+        const cardNames = name.split('~');
+        for (const cardName of cardNames) {
+            const card = player.grave_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
             if (card) {
-                (window.unsafeWindow || window).Send({"action":"Duel", "play":position, "card":card.data('id')});
+                (window.unsafeWindow || window).Send({action:'Duel', play:position, card:card.data('id')});
             }
         }
     }
 
     function getOwnControlledMonsters() {
-        var player = getCurrentPlayer();
-        var zones = [player.m1, player.m2, player.m3, player.m4, player.m5, (window.unsafeWindow || window).linkLeft, (window.unsafeWindow || window).linkRight];
-        return zones.filter(function (card) {
-            return card && card.data('controller').username === player.username;
-        });
+        const player = getCurrentPlayer();
+        const zones = [player.m1, player.m2, player.m3, player.m4, player.m5, (window.unsafeWindow || window).linkLeft, (window.unsafeWindow || window).linkRight];
+        return zones.filter((card) => card && card.data('controller').username === player.username);
     }
 
     function getOpponentsControlledMonsters() {
-        var player = getCurrentPlayer();
-        var opponent = player.opponent;
-        var zones = [opponent.m1, opponent.m2, opponent.m3, opponent.m4, opponent.m5, (window.unsafeWindow || window).linkLeft, (window.unsafeWindow || window).linkRight];
-        return zones.filter(function (card) {
-            return card && card.data('controller').username === opponent.username;
-        });
+        const player = getCurrentPlayer();
+        const opponent = player.opponent;
+        const zones = [opponent.m1, opponent.m2, opponent.m3, opponent.m4, opponent.m5, (window.unsafeWindow || window).linkLeft, (window.unsafeWindow || window).linkRight];
+        return zones.filter((card) => card && card.data('controller').username === opponent.username);
     }
 
     function getOwnSpellsAndTrapsOnField() {
-        var player = getCurrentPlayer();
-        return [player.s1, player.s2, player.s3, player.s4, player.s5].filter(function (card) {
-            return !!card;
-        });
+        const player = getCurrentPlayer();
+        return [player.s1, player.s2, player.s3, player.s4, player.s5].filter((card) => !!card);
     }
 
-    function sendOwnMonstersFromFieldToGY(position) {
-        var monstersOnField = getOwnControlledMonsters();
-        var checkPosition = false;
+    async function sendFromHandToGY(name) {
+        const player = getCurrentPlayer();
+        if (!player || player.hand_arr.length === 0) {
+            return;
+        }
+
+        const cardNames = name.split('~');
+        for (const cardName of cardNames) {
+            const card = player.hand_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
+            if (card) {
+                (window.unsafeWindow || window).Send({action:'Duel', play:'To GY', card:card.data('id')});
+            }
+        }
+    }
+
+    async function sendOwnMonstersFromFieldToGY(position) {
+        const monstersOnField = getOwnControlledMonsters();
+        let checkPosition = false;
         if (position) {
             if (position.toLowerCase() === 'atk') {
                 checkPosition = 'inATK';
@@ -527,130 +744,213 @@
             }
         }
 
-        for (var card of monstersOnField) {
+        for (const card of monstersOnField) {
             if (checkPosition && !card.data(checkPosition)) {
                 continue;
             }
-            (window.unsafeWindow || window).Send({"action":"Duel", "play":"To GY", "card":card.data('id')});
+            (window.unsafeWindow || window).Send({action:'Duel', play:'To GY', card:card.data('id')});
         }
     }
 
-    function sendOwnSpellTrapsFromFieldToGY() {
-        var spellTraps = getOwnSpellsAndTrapsOnField();
+    async function sendOwnSpellTrapsFromFieldToGY() {
+        const spellTraps = getOwnSpellsAndTrapsOnField();
 
-        for (var card of spellTraps) {
-            (window.unsafeWindow || window).Send({"action":"Duel", "play":"To GY", "card":card.data('id')});
+        for (const card of spellTraps) {
+            (window.unsafeWindow || window).Send({action:'Duel', play:'To GY', card:card.data('id')});
         }
     }
 
-    function sendFromFieldToGY(name) {
-        var cardsOnField = getOwnControlledMonsters().concat(getOwnSpellsAndTrapsOnField());
-        console.log('cardsOnField', cardsOnField);
-        var cardNames = name.split('~');
-        for (var cardName of cardNames) {
-            var card = cardsOnField.find(c => c.data('cardfront').data('name') === cardName.trim());
+    async function sendFromFieldToGY(name) {
+        const cardsOnField = getOwnControlledMonsters().concat(getOwnSpellsAndTrapsOnField());
+        const cardNames = name.split('~');
+        for (const cardName of cardNames) {
+            const card = cardsOnField.find((c) => c.data('cardfront').data('name') === cardName.trim());
             if (card) {
-                (window.unsafeWindow || window).Send({"action":"Duel", "play":"To GY", "card":card.data('id')});
+                (window.unsafeWindow || window).Send({action:'Duel', play:'To GY', card:card.data('id')});
             }
         }
     }
 
     function calculateAtkAllMonstersOnField() {
-        var allMonsters = getOwnControlledMonsters().concat(getOpponentsControlledMonsters());
-        var atk = 0;
-        for (var card of allMonsters) {
+        const allMonsters = getOwnControlledMonsters().concat(getOpponentsControlledMonsters());
+        let atk = 0;
+        for (const card of allMonsters) {
             atk += parseInt(card.data('cardfront').data('atk')) || 0;
         }
         return atk;
     }
 
     function calculateDefAllMonstersOnField() {
-        var allMonsters = getOwnControlledMonsters().concat(getOpponentsControlledMonsters());
-        var def = 0;
-        for (var card of allMonsters) {
+        const allMonsters = getOwnControlledMonsters().concat(getOpponentsControlledMonsters());
+        let def = 0;
+        for (const card of allMonsters) {
             def += parseInt(card.data('cardfront').data('def')) || 0;
         }
         return def;
     }
 
-    function specialSummonToken() {
+    async function specialSummonToken() {
         (window.unsafeWindow || window).tokenE();
     }
 
     function doStuffInDeck(cb, exit) {
-        exit = typeof exit === 'undefined'? true : exit;
-        var player = getCurrentPlayer();
-        if (!player || player.main_arr.length === 0) {
-            return;
-        }
-
-        (window.unsafeWindow || window).Send({"action":"Duel", "play":"View deck", "card":player.main_arr[0].data('id')});
-        setTimeout(function() {
-            cb();
-            if (exit) {
-                (window.unsafeWindow || window).exitViewing();
+        return new Promise((accept) => {
+            exit = typeof exit === 'undefined' ? true : exit;
+            const player = getCurrentPlayer();
+            if (!player || player.main_arr.length === 0) {
+                accept();
+                return;
             }
-        }, 500);
+
+            (window.unsafeWindow || window).viewing = 'Deck';
+            (window.unsafeWindow || window).Send({action:'Duel', play:'View deck', card:player.main_arr[0].data('id')});
+            setTimeout(() => {
+                cb();
+                if (exit) {
+                    (window.unsafeWindow || window).exitViewing();
+                }
+                accept();
+            }, 500);
+        });
     }
 
     function doStuffInExtraDeck(cb, exit) {
-        exit = typeof exit === 'undefined'? true : exit;
-        var player = getCurrentPlayer();
-        if (!player || player.extra_arr.length === 0) {
-            return;
-        }
-
-        (window.unsafeWindow || window).Send({"action":"Duel", "play":"View ED", "card":player.extra_arr[0].data('id')});
-        setTimeout(function() {
-            cb();
-            if (exit) {
-                (window.unsafeWindow || window).exitViewing();
+        return new Promise((accept) => {
+            exit = typeof exit === 'undefined' ? true : exit;
+            const player = getCurrentPlayer();
+            if (!player || player.extra_arr.length === 0) {
+                accept();
+                return;
             }
-        }, 500);
+
+            (window.unsafeWindow || window).viewing = 'Extra Deck';
+            (window.unsafeWindow || window).Send({action:'Duel', play:'View ED', card:player.extra_arr[0].data('id')});
+            setTimeout(function() {
+                cb();
+                if (exit) {
+                    (window.unsafeWindow || window).exitViewing();
+                }
+                accept();
+            }, 500);
+        });
     }
 
-    function sendFromExtraDeckToGY(name) {
-        var player = getCurrentPlayer();
+    async function sendFromExtraDeckToGY(name) {
+        const player = getCurrentPlayer();
         if (!player || player.extra_arr.length === 0) {
             return;
         }
 
-        doStuffInExtraDeck(function() {
-            var cardNames = name.split('~');
-            for (var cardName of cardNames) {
-                var card = player.extra_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
+        await doStuffInExtraDeck(() => {
+            const cardNames = name.split('~');
+            for (const cardName of cardNames) {
+                const card = player.extra_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
                 if (card) {
-                    (window.unsafeWindow || window).Send({"action":"Duel", "play":"To GY", "card":card.data('id')});
+                    (window.unsafeWindow || window).Send({action:'Duel', play:'To GY', 'card':card.data('id')});
                 }
             }
         });
     }
 
-    function specialSummonFromExtraDeckRandomZone(name, position) {
-        var player = getCurrentPlayer();
+    async function specialSummonFromExtraDeckRandomZone(name, position) {
+        const player = getCurrentPlayer();
         if (!player || player.extra_arr.length === 0 || !(window.unsafeWindow || window).hasAvailableMonsterZones(player)) {
             return;
         }
 
-        doStuffInExtraDeck(function() {
-            var cardNames = name.split('~');
-            for (var cardName of cardNames) {
-                var card = player.extra_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
+        await doStuffInExtraDeck(() => {
+            const cardNames = name.split('~');
+            for (const cardName of cardNames) {
+                const card = player.extra_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
                 if (card) {
-                    (window.unsafeWindow || window).Send({"action":"Duel", "play":position, "card":card.data('id')});
+                    (window.unsafeWindow || window).Send({action:'Duel', play:position, card:card.data('id')});
                 }
             }
         });
     }
 
-    function specialSummonFromExtraDeck(name, position) {
-        var player = getCurrentPlayer();
+    function normalizeZones(zones) {
+        return zones.map((zone) => {
+            zone = zone.toLowerCase();
+            let matches = zone.match(/m([1-5]{1})/);
+            if (matches) {
+                return 'M-' + matches[1];
+            }
+            matches = zone.match(/s([1-5]{1})/);
+            if (matches) {
+                return 'S-' + matches[1];
+            }
+            if (zone === 'el') {
+                return 'Left Extra Monster Zone';
+            }
+            if (zone === 'er') {
+                return 'Right Extra Monster Zone';
+            }
+        }).filter((zone) => !!zone);
+    }
+
+    function isZoneEmpty(zone) {
+        const player = getCurrentPlayer();
+        if (!player) {
+            return false;
+        }
+        switch (zone) {
+            case 'M-1':
+                return !player.m1;
+            case 'M-2':
+                return !player.m2;
+            case 'M-3':
+                return !player.m3;
+            case 'M-4':
+                return !player.m4;
+            case 'M-5':
+                return !player.m5;
+            case 'S-1':
+                return !player.s1;
+            case 'S-2':
+                return !player.s2;
+            case 'S-3':
+                return !player.s3;
+            case 'S-4':
+                return !player.s4;
+            case 'S-5':
+                return !player.s5;
+            case 'Left Extra Monster Zone':
+                return !(window.unsafeWindow || window).linkLeft;
+            case 'Right Extra Monster Zone':
+                return !(window.unsafeWindow || window).linkRight;
+        }
+        return false;
+    }
+
+     async function specialSummonFromExtraDeckToZone(name, position, zones) {
+        const player = getCurrentPlayer();
         if (!player || player.extra_arr.length === 0 || !(window.unsafeWindow || window).hasAvailableMonsterZones(player)) {
             return;
         }
 
-        doStuffInExtraDeck(function() {
-            var card = player.extra_arr.find(c => c.data('cardfront').data('name') === name);
+        await doStuffInExtraDeck(() => {
+            const card = player.extra_arr.find((c) => c.data('cardfront').data('name') === name.trim());
+            if (card) {
+                for (const zone of normalizeZones(zones)) {
+                    if (!isZoneEmpty(zone)) {
+                        continue;
+                    }
+                    (window.unsafeWindow || window).Send({action:'Duel', play:position, card:card.data('id'), zone:zone});
+                    break;
+                }
+            }
+        });
+    }
+
+    async function specialSummonFromExtraDeck(name, position) {
+        const player = getCurrentPlayer();
+        if (!player || player.extra_arr.length === 0 || !(window.unsafeWindow || window).hasAvailableMonsterZones(player)) {
+            return;
+        }
+
+        await doStuffInExtraDeck(() => {
+            const card = player.extra_arr.find((c) => c.data('cardfront').data('name') === name);
             if (card) {
                 (window.unsafeWindow || window).menu_card = card;
                 (window.unsafeWindow || window).cardMenuClicked(card, position);
@@ -661,48 +961,68 @@
         }, false);
     }
 
-    function sendFromDeckToGY(name) {
-        var player = getCurrentPlayer();
+    async function sendFromDeckToGY(name) {
+        const player = getCurrentPlayer();
         if (!player || player.main_arr.length === 0) {
             return;
         }
 
-        doStuffInDeck(function() {
-            var cardNames = name.split('~');
-            for (var cardName of cardNames) {
-                var card = player.main_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
+        await doStuffInDeck(() => {
+            const cardNames = name.split('~');
+            for (const cardName of cardNames) {
+                const card = player.main_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
                 if (card) {
-                    (window.unsafeWindow || window).Send({"action":"Duel", "play":"To GY", "card":card.data('id')});
+                    (window.unsafeWindow || window).Send({action:'Duel', play:'To GY', card:card.data('id')});
                 }
             }
         });
     }
 
-    function specialSummonFromDeckRandomZone(name, position) {
-        var player = getCurrentPlayer();
+    async function specialSummonFromDeckToZone(name, position, zones) {
+        const player = getCurrentPlayer();
         if (!player || player.main_arr.length === 0 || !(window.unsafeWindow || window).hasAvailableMonsterZones(player)) {
             return;
         }
 
-        doStuffInDeck(function() {
-            var cardNames = name.split('~');
-            for (var cardName of cardNames) {
-                var card = player.main_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
-                if (card) {
-                    (window.unsafeWindow || window).Send({"action":"Duel", "play":position, "card":card.data('id')});
+        await doStuffInDeck(() => {
+            const card = player.main_arr.find((c) => c.data('cardfront').data('name') === name.trim());
+            if (card) {
+                for (const zone of normalizeZones(zones)) {
+                    if (!isZoneEmpty(zone)) {
+                        continue;
+                    }
+                    (window.unsafeWindow || window).Send({action:'Duel', play:position, card:card.data('id'), zone:zone});
+                    break;
                 }
             }
         });
     }
 
-    function specialSummonFromDeck(name, position) {
-        var player = getCurrentPlayer();
+    async function specialSummonFromDeckRandomZone(name, position) {
+        const player = getCurrentPlayer();
         if (!player || player.main_arr.length === 0 || !(window.unsafeWindow || window).hasAvailableMonsterZones(player)) {
             return;
         }
 
-        doStuffInDeck(function() {
-            var card = player.main_arr.find(c => c.data('cardfront').data('name') === name);
+        await doStuffInDeck(() => {
+            const cardNames = name.split('~');
+            for (const cardName of cardNames) {
+                const card = player.main_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
+                if (card) {
+                    (window.unsafeWindow || window).Send({action:'Duel', play:position, card:card.data('id')});
+                }
+            }
+        });
+    }
+
+    async function specialSummonFromDeck(name, position) {
+        const player = getCurrentPlayer();
+        if (!player || player.main_arr.length === 0 || !(window.unsafeWindow || window).hasAvailableMonsterZones(player)) {
+            return;
+        }
+
+        await doStuffInDeck(() => {
+            const card = player.main_arr.find((c) => c.data('cardfront').data('name') === name);
             if (card) {
                 (window.unsafeWindow || window).menu_card = card;
                 (window.unsafeWindow || window).cardMenuClicked(card, position);
@@ -713,34 +1033,34 @@
         }, false);
     }
 
-    function addCardFromDeckToHand(name) {
-        var player = getCurrentPlayer();
+    async function addCardFromDeckToHand(name) {
+        const player = getCurrentPlayer();
         if (!player || player.main_arr.length === 0) {
             return;
         }
 
-        doStuffInDeck(function() {
-            var cardNames = name.split('~');
-            for (var cardName of cardNames) {
-                var card = player.main_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
+        await doStuffInDeck(() => {
+            const cardNames = name.split('~');
+            for (const cardName of cardNames) {
+                const card = player.main_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
                 if (card) {
-                    (window.unsafeWindow || window).Send({"action":"Duel", "play":"To hand", "card":card.data("id")});
+                    (window.unsafeWindow || window).Send({action:'Duel', play:'To hand', card:card.data("id")});
                 }
             }
         });
     }
 
-    function activateSpellTrapFromDeck(name) {
-        var player = getCurrentPlayer();
+    async function activateSpellTrapFromDeck(name) {
+        const player = getCurrentPlayer();
         if (!player || player.main_arr.length === 0) {
             return;
         }
 
-        var cardTypes = ['Spell', 'Trap'];
-        doStuffInDeck(function() {
-            var cardNames = name.split('~');
-            for (var cardName of cardNames) {
-                var card = player.main_arr.find(c => cardTypes.indexOf(c.data('cardfront').data('card_type')) !== -1 && c.data('cardfront').data('name') === cardName.trim());
+        const cardTypes = ['Spell', 'Trap'];
+        await doStuffInDeck(() => {
+            const cardNames = name.split('~');
+            for (const cardName of cardNames) {
+                const card = player.main_arr.find((c) => cardTypes.indexOf(c.data('cardfront').data('card_type')) !== -1 && c.data('cardfront').data('name') === cardName.trim());
                 if (card) {
                     (window.unsafeWindow || window).menu_card = card;
                     (window.unsafeWindow || window).cardMenuClicked(card, 'To ST');
@@ -750,7 +1070,7 @@
     }
 
     function getCommandFromStr(str) {
-        var match = str.match(/\$\{([^(]+)\((.*)\)\}/);
+        const match = str.match(/\$\{([^(]+)\((.*)\)\}/);
         if (!match) {
             return;
         }
@@ -767,20 +1087,22 @@
                     return document.querySelector('#avatar2 .username_txt').textContent;
                 case 'botUsername':
                     return document.querySelector('#avatar1 .username_txt').textContent;
-                case 'halfOfLP':
-                    var player = getCurrentPlayer();
-                    var lp = 0;
+                case 'halfOfLP': {
+                    const player = getCurrentPlayer();
+                    let lp = 0;
                     if (player) {
                         lp = Math.floor(player.lifepoints/2);
                     }
                     return lp;
-                case 'currentLP':
-                    var player2 = getCurrentPlayer();
-                    var lp2 = 0;
-                    if (player2) {
-                        lp2 = player2.lifepoints;
+                }
+                case 'currentLP': {
+                    const player = getCurrentPlayer();
+                    let lp = 0;
+                    if (player) {
+                        lp = player.lifepoints;
                     }
-                    return lp2;
+                    return lp;
+                }
                 case 'atkAllMonsters':
                     return calculateAtkAllMonstersOnField();
                 case 'defAllMonsters':
@@ -791,59 +1113,59 @@
     }
 
     function makeAllSleevesDefault() {
-        var sleeveUrl = GM_config.get('sleeveUrl');
+        const sleeveUrl = GM_config.get('sleeveUrl');
         if (!sleeveUrl) {
             return;
         }
-        for (var back of document.querySelectorAll('.cardback img, img.cardback')) {
+        for (const back of document.querySelectorAll('.cardback img, img.cardback')) {
             if (back.getAttribute('src') !== sleeveUrl) {
                 back.setAttribute('src', sleeveUrl);
             }
         }
     }
     function replaceThinkEmote() {
-        var thinkEmoteUrl = GM_config.get('thinkEmoteUrl');
+        const thinkEmoteUrl = GM_config.get('thinkEmoteUrl');
         if (!thinkEmoteUrl) {
             return;
         }
-        for (var thinkImg of document.querySelectorAll('.think')) {
+        for (const thinkImg of document.querySelectorAll('.think')) {
             if (thinkImg.getAttribute('src') !== thinkEmoteUrl) {
                 thinkImg.setAttribute('src', thinkEmoteUrl);
             }
         }
-        var thinkButtonImg = document.querySelector('#think_btn img');
+        const thinkButtonImg = document.querySelector('#think_btn img');
         if (thinkButtonImg && thinkButtonImg.getAttribute('src') !== thinkEmoteUrl) {
             thinkButtonImg.setAttribute('src', thinkEmoteUrl);
         }
     }
     function hideProfilePictures() {
-        var pfpUrls = GM_config.get('pfpUrls').split('\n').map(p => p.trim()).filter(p => !!p);
+        const pfpUrls = GM_config.get('pfpUrls').split('\n').map(p => p.trim()).filter(p => !!p);
         //var bottomPfpUrls = GM_config.get('bottomPfpUrl').split('\n').map(p => p.trim()).filter(p => !!p);
 
         if (pfpUrls.length > 0) {
-            var topUsername = document.querySelector('#avatar2 .username_txt').textContent;
-            var bottomUsername = document.querySelector('#avatar1 .username_txt').textContent;
+            const topUsername = document.querySelector('#avatar2 .username_txt').textContent;
+            const bottomUsername = document.querySelector('#avatar1 .username_txt').textContent;
 
-            var topRandom = xmur3(topUsername);
-            var pfpUrl = pfpUrls[topRandom() % pfpUrls.length];
-            for (var pfpTop of document.querySelectorAll('#avatar2 .image')) {
+            const topRandom = xmur3(topUsername);
+            const pfpUrl = pfpUrls[topRandom() % pfpUrls.length];
+            for (const pfpTop of document.querySelectorAll('#avatar2 .image')) {
                 if (pfpUrls.indexOf(pfpTop.getAttribute('src')) === -1) {
                     pfpTop.setAttribute('src', pfpUrl);
                 }
             }
 
-            var ownPfpUrl = GM_config.get('ownPfpUrl');
+            const ownPfpUrl = GM_config.get('ownPfpUrl');
 
             if (bottomUsername != (window.unsafeWindow || window).user_username) {
-                var botRandom = xmur3(bottomUsername);
-                var bottomPfpUrl = pfpUrls[topRandom() % pfpUrls.length];
-                for (var pfpBot of document.querySelectorAll('#avatar1 .image')) {
+                const botRandom = xmur3(bottomUsername);
+                const bottomPfpUrl = pfpUrls[topRandom() % pfpUrls.length];
+                for (const pfpBot of document.querySelectorAll('#avatar1 .image')) {
                     if (pfpUrls.indexOf(pfpBot.getAttribute('src')) === -1) {
                         pfpBot.setAttribute('src', bottomPfpUrl);
                     }
                 }
             } else if (ownPfpUrl) {
-                for (var pfpBot2 of document.querySelectorAll('#avatar1 .image')) {
+                for (const pfpBot2 of document.querySelectorAll('#avatar1 .image')) {
                     if (ownPfpUrl !== pfpBot2.getAttribute('src')) {
                         pfpBot2.setAttribute('src', ownPfpUrl);
                     }
@@ -860,44 +1182,44 @@
         }*/
     }
     function setBackgroundImage() {
-        var backgroundUrl = GM_config.get('backgroundUrl');
+        const backgroundUrl = GM_config.get('backgroundUrl');
         if (!backgroundUrl) {
             return;
         }
-        var circuit = document.getElementById('circuit_board');
+        const circuit = document.getElementById('circuit_board');
         if (circuit) {
             circuit.remove();
         }
-        var greenLines = document.getElementById('greenlines');
+        const greenLines = document.getElementById('greenlines');
         if (greenLines) {
             greenLines.remove();
         }
-        var bg = 'url("' + backgroundUrl + '")';
-        if (document.body.style.background != bg) {
-            document.body.style.background=bg;
-            document.body.style['background-size']='cover';
+        const bg = 'url("' + backgroundUrl + '")';
+        if (document.body.style.background !== bg) {
+            document.body.style.background = bg;
+            document.body.style['background-size'] = 'cover';
         }
     }
     function setOkSound() {
-        var okSoundUrl = GM_config.get('okSoundUrl');
+        const okSoundUrl = GM_config.get('okSoundUrl');
         if (!okSoundUrl) {
             return;
         }
         (window.unsafeWindow || window).Ok = okSoundUrl;
     }
     function setOkImage() {
-        var okImageUrl = GM_config.get('okImageUrl');
+        const okImageUrl = GM_config.get('okImageUrl');
         if (!okImageUrl) {
             return;
         }
-        for (var okImage of document.querySelectorAll('.duel_avatar .all_good')) {
+        for (const okImage of document.querySelectorAll('.duel_avatar .all_good')) {
             if (okImage.getAttribute('src') !== okImageUrl) {
                 okImage.setAttribute('src', okImageUrl);
             }
         }
     }
     function setStartPageMonster() {
-        var el = document.getElementById('brionac_large');
+        const el = document.getElementById('brionac_large');
         if (!el) {
             return;
         }
@@ -907,7 +1229,7 @@
         } else {
             el.removeAttribute('hidden');
         }
-        var startPageMonsterUrl = GM_config.get('startPageMonsterUrl');
+        const startPageMonsterUrl = GM_config.get('startPageMonsterUrl');
         if (!startPageMonsterUrl) {
             return;
         }
@@ -916,14 +1238,14 @@
         }
     }
     function hideBackgroundBox() {
-        var hideBackgroundBox = GM_config.get('hideBackgroundBox');
-        var el = document.getElementById('circuit_cover');
+        const hideBackgroundBox = GM_config.get('hideBackgroundBox');
+        const el = document.getElementById('circuit_cover');
         if (el) {
             el.style.display = hideBackgroundBox ? 'none' : 'block';
         }
     }
     function removeWatchersList() {
-        var hideWatchersList = GM_config.get('hideWatchersList');
+        const hideWatchersList = GM_config.get('hideWatchersList');
         if (!hideWatchersList) {
             return;
         }
@@ -931,25 +1253,25 @@
             if (el) {
                 el.remove();
             }*/
-        for (var watcher of document.querySelectorAll('#watchers .users .os-list .cell')) {
+        for (const watcher of document.querySelectorAll('#watchers .users .os-list .cell')) {
             if (!watcher.classList.contains('isAdmin') && !watcher.classList.contains('adjudicator')) {
                 watcher.textContent = '*'.repeat(watcher.textContent.length);
             }
         }
     }
     function removeDuelNotes() {
-        var hideDuelNotes = GM_config.get('hideDuelNotes');
+        const hideDuelNotes = GM_config.get('hideDuelNotes');
         if (!hideDuelNotes) {
             return;
         }
-        for (var duelNote of document.querySelectorAll('.duelbutton .note_txt')) {
+        for (const duelNote of document.querySelectorAll('.duelbutton .note_txt')) {
             duelNote.textContent = '';
         }
     }
     function getTextNodesInElementRecursive(el) {
-        var ret = [];
+        const ret = [];
         if (el.hasChildNodes()) {
-            for (var node of el.childNodes) {
+            for (const node of el.childNodes) {
                 if (node.nodeType === Node.TEXT_NODE) {
                     ret.push(node);
                 } else {
@@ -963,10 +1285,10 @@
         if (!GM_config.get('active') || !GM_config.get('censorChat')) {
             return;
         }
-        for (var msg of document.querySelectorAll('#duel .cout_txt .os-content > font')) {
-            var els = getTextNodesInElementRecursive(msg);
-            for (var el of els) {
-                el.data = el.data.split(/\b/).map(word => bannedWords.includes(word.toLowerCase()) ? '*'.repeat(word.length) : word).join('');
+        for (const msg of document.querySelectorAll('#duel .cout_txt .os-content > font')) {
+            const els = getTextNodesInElementRecursive(msg);
+            for (const el of els) {
+                el.data = el.data.split(/\b/).map((word) => bannedWords.includes(word.toLowerCase()) ? '*'.repeat(word.length) : word).join('');
             }
         }
     }
@@ -986,7 +1308,7 @@
         replaceThinkEmote();
     }
     function sendThinkingText() {
-        var thinkingText = GM_config.get('thinkingText');
+        const thinkingText = GM_config.get('thinkingText');
         if (!thinkingText || !((window.unsafeWindow || window).Send)) {
             return;
         }
@@ -994,13 +1316,13 @@
         (window.unsafeWindow || window).Send({"action":"Duel", "play":"Thinking"});
     }
     function sendOkText() {
-        var okText = GM_config.get('okText');
+        const okText = GM_config.get('okText');
         if (!okText || !((window.unsafeWindow || window).Send)) {
             return;
         }
         sendDuelChatMessages([okText]);
     }
-    var initDone = false;
+    let initDone = false;
     function init() {
         if (!GM_config.get('active') || !isOnDb()) {
             return;
@@ -1015,10 +1337,10 @@
             $('#duel .cout_txt').scrollTop($('#duel .cout_txt').scrollMax());
         }
 
-        var config = {attributes: true, childList: true, characterData: true, subtree: true};
-        var target = document.querySelector('body');
-        var applying = false;
-        var observer = new MutationObserver(function (mutations) {
+        const config = {attributes: true, childList: true, characterData: true, subtree: true};
+        const target = document.querySelector('body');
+        let applying = false;
+        const observer = new MutationObserver((mutations) => {
             if (applying) {
                 return;
             }
@@ -1034,10 +1356,10 @@
             observer.observe(target, config);
         }
 
-        var chatObserverConfig = {childList: true, subtree: true};
-        var chatTarget = document.querySelector('#duel .cout_txt');
-        var chatApplying = false;
-        var chatObserver = new MutationObserver(function (mutations) {
+        const chatObserverConfig = {childList: true, subtree: true};
+        const chatTarget = document.querySelector('#duel .cout_txt');
+        let chatApplying = false;
+        const chatObserver = new MutationObserver((mutations) => {
             if (chatApplying) {
                 return;
             }
@@ -1050,7 +1372,7 @@
         if (chatTarget) {
             chatObserver.observe(chatTarget, chatObserverConfig);
         }
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', (e) => {
             if (e.target.id === 'think_btn') {
                 sendThinkingText();
             } else if (e.target.id === 'good_btn') {
@@ -1062,13 +1384,13 @@
     addSettingsButton();
     init();
 
-    var bannedWordsList = GM_config.get('bannedWordsList');
+    const bannedWordsList = GM_config.get('bannedWordsList');
     if (bannedWordsList) {
         GM_xmlhttpRequest({
             method: 'GET',
             url: GM_config.get('bannedWordsList'),
-            onload: function (response) {
-                bannedWords = response.responseText.split('\n').filter(w => !!w.trim());
+            onload: (response) => {
+                bannedWords = response.responseText.split('\n').filter((w) => !!w.trim());
                 init();
             }
         });

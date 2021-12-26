@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.4
+// @version      1.1.5
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -20,7 +20,7 @@
 // @connect *
 // ==/UserScript==
 
-const version = '1.1.4';
+const version = '1.1.5';
 
 (function() {
     'use strict';
@@ -764,6 +764,7 @@ const version = '1.1.4';
             }
             (window.unsafeWindow || window).Send({action:'Duel', play:'To GY', card:card.data('id')});
         }
+        await waitMs(750);
     }
 
     async function sendOwnSpellTrapsFromFieldToGY() {
@@ -772,6 +773,7 @@ const version = '1.1.4';
         for (const card of spellTraps) {
             (window.unsafeWindow || window).Send({action:'Duel', play:'To GY', card:card.data('id')});
         }
+        await waitMs(250);
     }
 
     async function sendFromFieldToGY(name) {
@@ -783,6 +785,7 @@ const version = '1.1.4';
                 (window.unsafeWindow || window).Send({action:'Duel', play:'To GY', card:card.data('id')});
             }
         }
+        await waitMs(250);
     }
 
     function calculateAtkAllMonstersOnField() {
@@ -1010,10 +1013,14 @@ const version = '1.1.4';
             return;
         }
 
+        console.log('specialSummonFromDeckToZone', name, position, zones);
+
         await doStuffInDeck(() => {
             const card = player.main_arr.find((c) => c.data('cardfront').data('name') === name.trim());
+            console.log('card', card);
             if (card) {
                 for (const zone of normalizeZones(zones)) {
+                    console.log('zone', zone, isZoneEmpty(zone));
                     if (!isZoneEmpty(zone)) {
                         continue;
                     }

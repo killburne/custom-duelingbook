@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.2
+// @version      1.1.3
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -20,7 +20,7 @@
 // @connect *
 // ==/UserScript==
 
-const version = '1.1.2';
+const version = '1.1.3';
 
 (function() {
     'use strict';
@@ -433,6 +433,11 @@ const version = '1.1.2';
                 case 'specialSummonToken':
                     await specialSummonToken();
                     break;
+                case 'specialSummonTokenToZone':
+                    if (cmd.param) {
+                        await specialSummonTokenToZone(cmd.param.split('~'));
+                    }
+                    break;
                 case 'sendAllControllingMonstersFromFieldToGY':
                     await sendOwnMonstersFromFieldToGY(cmd.param);
                     break;
@@ -454,6 +459,13 @@ const version = '1.1.2';
                         await activateSpellTrapFromDeck(cmd.param);
                     }
                     break;
+                case 'activateSpellTrapFromDeckToZone':
+                    if (cmd.param) {
+                        const params = cmd.param.split('~');
+                        if (params.length >= 2) {
+                            await activateSpellTrapFromDeckToZone(params.shift(), params);
+                        }
+                    }
                 case 'specialFromGYInAtk':
                     if (cmd.param) {
                         await specialFromGY(cmd.param, 'SS ATK');
@@ -794,6 +806,16 @@ const version = '1.1.2';
         (window.unsafeWindow || window).tokenE();
     }
 
+    async function specialSummonTokenToZone(zones) {
+        for (const zone of normalizeZones(zones)) {
+            if (!isZoneEmpty(zone)) {
+                continue;
+            }
+            (window.unsafeWindow || window).Send({action:'Duel', play:'Summon token', zone:zone});
+            break;
+        }
+    }
+
     function doStuffInDeck(cb, exit) {
         return new Promise((accept) => {
             exit = typeof exit === 'undefined' ? true : exit;
@@ -1070,6 +1092,27 @@ const version = '1.1.2';
                 }
             }
         }, false);
+    }
+
+    async function activateSpellTrapFromDeckToZone(name, zones) {
+        const player = getCurrentPlayer();
+        if (!player || player.main_arr.length === 0) {
+            return;
+        }
+
+        const cardTypes = ['Spell', 'Trap'];
+        await doStuffInDeck(() => {
+            const card = player.main_arr.find((c) => cardTypes.indexOf(c.data('cardfront').data('card_type')) !== -1 && c.data('cardfront').data('name') === name.trim());
+            if (card) {
+                for (const zone of normalizeZones(zones)) {
+                    if (!isZoneEmpty(zone)) {
+                        continue;
+                    }
+                    (window.unsafeWindow || window).Send({action:'Duel', play:'To ST', card:card.data('id'), zone:zone});
+                    break;
+                }
+            }
+        });
     }
 
     function getCommandFromStr(str) {

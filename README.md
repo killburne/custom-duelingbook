@@ -37,11 +37,20 @@ There are 4 variables available
 ### Functions
 - ``waitInMs(number)`` waits for the specified amount of milliseconds before doing the next action in the macro
 - ``addFromDeckToHand(cardNames)`` adds cards from your deck to your hand. If the card is not found in your deck the deck will just be shuffled
-- ``sendFromDeckToGY(cardNames)`` sends cards from your deck to your GY.
+- ``sendFromDeckToGY(cardNames)`` sends cards from your deck to your GY
 - ``specialFromDeckInAtk(cardName)`` opens the zone selection and then special summons a monster from your deck to that zone in attack position
 - ``specialFromDeckInDef(cardName)`` opens the zone selection and then special summons a monster from your deck to that zone in defense position
 - ``specialFromDeckInAtkRandomZone(cardNames)`` special summons monsters from your deck to an available zone chosen by DB in attack position
 - ``specialFromDeckInDefRandomZone(cardNames)`` special summons monsters from your deck to an available zone chosen by DB in defense position
+- ``specialFromExtraDeckInAtk(cardName)`` opens the zone selection and then special summons a monster from your extra deck to that zone in attack position
+- ``specialFromExtraDeckInDef(cardName)`` opens the zone selection and then special summons a monster from your extra deck to that zone in defense position
+- ``specialFromExtraDeckInAtkRandomZone(cardNames)`` special summons monsters from your extra deck to an available zone chosen by DB in attack position
+- ``specialFromExtraDeckInDefRandomZone(cardNames)`` special summons monsters from your extra deck to an available zone chosen by DB in defense position
+- ``sendFromExtraDeckToGY(cardNames)`` sends cards from your extra deck to your GY
+- ``specialSummonToken()`` special summons a token
+- ``sendAllControllingMonstersFromFieldToGY(cardPosition)`` sends all monster with given position (ATK/DEF) or all if no position given to the GY
+- ``sendFromFieldToGY(cardNames)`` sends monsters you control to the GY
+- ``banishFromGY(cardNames)`` banishes monsters from your GY
 
 #### Examples
 - Sends Hello in chat, waits 2 seconds and then sends Bye
@@ -52,19 +61,19 @@ There are 4 variables available
   - ``SS Driver | ${specialFromDeckInAtkRandomZone(PSY-Frame Driver)}``
 
 ### Full Example Macros
-    -- Chatting
-    :)
-    Hello | Hello ${topUsername} :)
-    TOO LATE | Sorry iz too late
-    🤡
-    CHET | Stop cheating
-    GG | gg ez noob
+    Hello | Hello ${topUsername}, good luck have fun.
+    CHAIN | I'll chain to that.
+    Nibiru :( | The total stats of all monsters on the field that i can see are ${atkAllMonsters} ATK / ${defAllMonsters} DEF | ${sendAllControllingMonstersFromFieldToGY()} | ${specialSummonToken()}
     -- LP
     LP/2 | /sub ${halfOfLP}
-    LP*2 | /add ${currentLP}
     -- SS
-    SS Driver | ${specialFromDeckInAtkRandomZone(PSY-Frame Driver)}
-    SS Driver Def | ${specialFromDeckInDefRandomZone(PSY-Frame Driver)}
+    SS Driver Zone | ${specialFromDeckInAtk(PSY-Frame Driver)}
+    SS Driver | ${specialFromDeckInAtkRandomZone(PSY-Frame Driver)} | Thinking on zone
+    SS Driver Def | ${specialFromDeckInDefRandomZone(PSY-Frame Driver)} | Thinking on zone
     -- Deck to GY
+    Mill 1 | /mill 1
+    Verte Fusion Destiny | /sub 2000 | ${sendFromDeckToGY(Fusion Destiny)}
     Send DPE Garnets | ${sendFromDeckToGY(Destiny HERO - Celestial~Destiny HERO - Dasher)}
     Send Dragoon Garnets | ${sendFromDeckToGY(Dark Magician~Red-Eyes Black Dragon)}
+    -- Search
+    Add Invo | ${addFromDeckToHand(Invocation)}

@@ -50,8 +50,14 @@ Using the macro function you can do many things.
 - ``sendFromExtraDeckToGY(cardNames)`` sends cards from your extra deck to your GY
 - ``specialSummonToken()`` special summons a token
 - ``sendAllControllingMonstersFromFieldToGY(cardPosition)`` sends all monster with given position (ATK/DEF) or all if no position given to the GY
+- ``sendAllOwnSpellTrapsFromFieldToGY`` sends all your spell and trap cards from your field to your GY
 - ``sendFromFieldToGY(cardNames)`` sends monsters you control to the GY
 - ``banishFromGY(cardNames)`` banishes monsters from your GY
+- ``activateSpellTrapFromDeck`` activates a spell or trap card from your deck
+- ``specialFromGYInAtk`` opens the zone selection and then special summons a monster from your GY to that zone in attack position
+- ``specialFromGYInDef`` opens the zone selection and then special summons a monster from your GY to that zone in defense position
+- ``specialFromGYInAtkRandomZone`` special summons monsters from your GY to an available zone chosen by DB in attack position
+- ``specialFromGYInDefRandomZone`` special summons monsters from your GY to an available zone chosen by DB in defense position
 
 #### Examples
 - Sends Hello in chat, waits 2 seconds and then sends Bye

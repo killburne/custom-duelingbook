@@ -20,11 +20,12 @@ Using the macro function you can do many things.
 - Functions with multiple parameters ``${functionName(param1~param2~param3)}``
 
 ### Variables
-There are 4 variables available
 - ``currentLP`` your current lifepoints
 - ``halfOfLP`` half of your current lifepoints
 - ``topUsername`` The username of the player at the top
 - ``botUsername`` The username of the player at the bottom (usually yourself)
+- ``atkAllMonsters`` The combined atk of all monsters on the field you can see
+- ``defAllMonsters`` The combined def of all monsters on the field you can see
 
 #### Examples
 - This adds a macro that greets the opponent and says you're the real YOUR USERNAME

@@ -53,11 +53,13 @@ Using the macro function you can do many things.
 - ``specialFromExtraDeckInDefToZone(cardName~zone)`` special summons a monster from your extra deck to an available zone from your given list in defense position
 - ``sendFromExtraDeckToGY(cardNames)`` sends cards from your extra deck to your GY
 - ``specialSummonToken()`` special summons a token
+- ``specialSummonTokenToZone(zone)`` special summons a token to an available zone from your given list
 - ``sendAllControllingMonstersFromFieldToGY(cardPosition)`` sends all monster with given position (ATK/DEF) or all if no position given to the GY
 - ``sendAllOwnSpellTrapsFromFieldToGY()`` sends all your spell and trap cards from your field to your GY
 - ``sendFromFieldToGY(cardNames)`` sends monsters you control to the GY
 - ``banishFromGY(cardNames)`` banishes monsters from your GY
 - ``activateSpellTrapFromDeck(cardNames)`` activates a spell or trap card from your deck
+- ``activateSpellTrapFromDeckToZone(cardName~zone)`` activates a spell or trap card from your deck to an available zone from your given list
 - ``specialFromGYInAtk(cardName)`` opens the zone selection and then special summons a monster from your GY to that zone in attack position
 - ``specialFromGYInDef(cardName)`` opens the zone selection and then special summons a monster from your GY to that zone in defense position
 - ``specialFromGYInAtkRandomZone(cardNames)`` special summons monsters from your GY to an available zone chosen by DB in attack position

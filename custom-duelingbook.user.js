@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.0.25
+// @version      1.0.26
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -398,6 +398,9 @@
                 case 'sendAllControllingMonstersFromFieldToGY':
                     sendOwnMonstersFromFieldToGY(cmd.param);
                     break;
+                case 'sendAllOwnSpellTrapsFromFieldToGY':
+                    sendOwnSpellTrapsFromFieldToGY();
+                    break;
                 case 'sendFromFieldToGY':
                     if (cmd.param) {
                         sendFromFieldToGY(cmd.param);
@@ -406,6 +409,31 @@
                 case 'banishFromGY':
                     if (cmd.param) {
                         banishFromGY(cmd.param);
+                    }
+                    break;
+                case 'activateSpellTrapFromDeck':
+                    if (cmd.param) {
+                        activateSpellTrapFromDeck(cmd.param);
+                    }
+                    break;
+                case 'specialFromGYInAtk':
+                    if (cmd.param) {
+                        specialFromGY(cmd.param, 'SS ATK');
+                    }
+                    break;
+                case 'specialFromGYInDef':
+                    if (cmd.param) {
+                        specialFromGY(cmd.param, 'SS DEF');
+                    }
+                    break;
+                case 'specialFromGYInAtkRandomZone':
+                    if (cmd.param) {
+                        specialFromGYRandomZone(cmd.param, 'SS ATK');
+                    }
+                    break;
+                case 'specialFromGYInDefRandomZone':
+                    if (cmd.param) {
+                        specialFromGYRandomZone(cmd.param, 'SS DEF');
                     }
                     break;
             }
@@ -429,6 +457,37 @@
             var card = player.grave_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
             if (card) {
                 (window.unsafeWindow || window).Send({"action":"Duel", "play":"Banish", "card":card.data('id')});
+            }
+        }
+    }
+
+    function specialFromGY(name, position) {
+        var player = getCurrentPlayer();
+        if (!player || player.grave_arr.length === 0 || !(window.unsafeWindow || window).hasAvailableMonsterZones(player)) {
+            return;
+        }
+
+        var card = player.grave_arr.find(c => c.data('cardfront').data('name') === name);
+        if (card) {
+            (window.unsafeWindow || window).menu_card = card;
+            (window.unsafeWindow || window).cardMenuClicked(card, position);
+            /*(window.unsafeWindow || window).summoning_card = card;
+				(window.unsafeWindow || window).summoning_play = position;
+				(window.unsafeWindow || window).startChooseMonsterZones();*/
+        }
+    }
+
+    function specialFromGYRandomZone(name, position) {
+        var player = getCurrentPlayer();
+        if (!player || player.grave_arr.length === 0 || !(window.unsafeWindow || window).hasAvailableMonsterZones(player)) {
+            return;
+        }
+
+        var cardNames = name.split('~');
+        for (var cardName of cardNames) {
+            var card = player.grave_arr.find(c => c.data('cardfront').data('name') === cardName.trim());
+            if (card) {
+                (window.unsafeWindow || window).Send({"action":"Duel", "play":position, "card":card.data('id')});
             }
         }
     }
@@ -472,6 +531,14 @@
             if (checkPosition && !card.data(checkPosition)) {
                 continue;
             }
+            (window.unsafeWindow || window).Send({"action":"Duel", "play":"To GY", "card":card.data('id')});
+        }
+    }
+
+    function sendOwnSpellTrapsFromFieldToGY() {
+        var spellTraps = getOwnSpellsAndTrapsOnField();
+
+        for (var card of spellTraps) {
             (window.unsafeWindow || window).Send({"action":"Duel", "play":"To GY", "card":card.data('id')});
         }
     }
@@ -661,6 +728,25 @@
                 }
             }
         });
+    }
+
+    function activateSpellTrapFromDeck(name) {
+        var player = getCurrentPlayer();
+        if (!player || player.main_arr.length === 0) {
+            return;
+        }
+
+        var cardTypes = ['Spell', 'Trap'];
+        doStuffInDeck(function() {
+            var cardNames = name.split('~');
+            for (var cardName of cardNames) {
+                var card = player.main_arr.find(c => cardTypes.indexOf(c.data('cardfront').data('card_type')) !== -1 && c.data('cardfront').data('name') === cardName.trim());
+                if (card) {
+                    (window.unsafeWindow || window).menu_card = card;
+                    (window.unsafeWindow || window).cardMenuClicked(card, 'To ST');
+                }
+            }
+        }, false);
     }
 
     function getCommandFromStr(str) {

@@ -43,10 +43,14 @@ Using the macro function you can do many things.
 - ``specialFromDeckInDef(cardName)`` opens the zone selection and then special summons a monster from your deck to that zone in defense position
 - ``specialFromDeckInAtkRandomZone(cardNames)`` special summons monsters from your deck to an available zone chosen by DB in attack position
 - ``specialFromDeckInDefRandomZone(cardNames)`` special summons monsters from your deck to an available zone chosen by DB in defense position
+- ``specialFromDeckInAtkToZone(cardName~zone)`` special summons a monster from your deck to an available zone from your given list in attack position
+- ``specialFromDeckInDefToZone(cardName~zone)`` special summons a monster from your deck to an available zone from your given list in defense position
 - ``specialFromExtraDeckInAtk(cardName)`` opens the zone selection and then special summons a monster from your extra deck to that zone in attack position
 - ``specialFromExtraDeckInDef(cardName)`` opens the zone selection and then special summons a monster from your extra deck to that zone in defense position
 - ``specialFromExtraDeckInAtkRandomZone(cardNames)`` special summons monsters from your extra deck to an available zone chosen by DB in attack position
 - ``specialFromExtraDeckInDefRandomZone(cardNames)`` special summons monsters from your extra deck to an available zone chosen by DB in defense position
+- ``specialFromExtraDeckInAtkToZone(cardName~zone)`` special summons a monster from your extra deck to an available zone from your given list in attack position
+- ``specialFromExtraDeckInDefToZone(cardName~zone)`` special summons a monster from your extra deck to an available zone from your given list in defense position
 - ``sendFromExtraDeckToGY(cardNames)`` sends cards from your extra deck to your GY
 - ``specialSummonToken()`` special summons a token
 - ``sendAllControllingMonstersFromFieldToGY(cardPosition)`` sends all monster with given position (ATK/DEF) or all if no position given to the GY
@@ -58,6 +62,16 @@ Using the macro function you can do many things.
 - ``specialFromGYInDef(cardName)`` opens the zone selection and then special summons a monster from your GY to that zone in defense position
 - ``specialFromGYInAtkRandomZone(cardNames)`` special summons monsters from your GY to an available zone chosen by DB in attack position
 - ``specialFromGYInDefRandomZone(cardNames)`` special summons monsters from your GY to an available zone chosen by DB in defense position
+- ``specialFromGYInAtkToZone(cardName~zone)`` special summons a monster from your GY to an available zone from your given list in attack position
+- ``specialFromGYInDefToZone(cardName~zone)`` special summons a monster from your GY to an available zone from your given list in defense position
+- ``discard(cardNames)`` discards monsters from your hand to your GY
+- ``addFromGYToHand(cardNames)`` adds cards from your GY to your hand
+- ``fromBanishToTopOfDeck(cardNames)`` returns banished cards to the top of your deck
+- ``fromGYToTopOfDeck(cardNames)`` returns cards in your GY to the top of your deck
+- ``fromFieldToTopOfDeck(cardNames)`` returns cards on your field to the top of your deck
+- ``shuffleDeck()`` shuffles your deck
+- ``moveZone(cardName~zone)`` MOVES a card on the field to an available zone from your given list
+- ``overlayMonsters(cardName~materialName)`` overlays a monster with 1 or more materials
 
 #### Examples
 - Sends Hello in chat, waits 2 seconds and then sends Bye

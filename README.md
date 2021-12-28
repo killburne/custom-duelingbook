@@ -75,6 +75,11 @@ Using the macro function you can do many things.
 - ``moveZone(cardName~zone)`` MOVES a card on the field to an available zone from your given list
 - ``overlayMonsters(cardName~materialName)`` overlays a monster with 1 or more materials
 
+#### Zones
+- Monster zones: M1 - M5
+- Extra monster zones: EL (left) and ER (right)
+- Spell/Trap zones: S1 - S5
+
 #### Examples
 - Sends Hello in chat, waits 2 seconds and then sends Bye
   - ``Hello | Hello | ${waitInMs(2000)} | Bye``

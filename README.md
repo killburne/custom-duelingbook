@@ -75,7 +75,7 @@ Using the macro function you can do many things.
 - ``moveZone(cardName~zone)`` MOVES a card on the field to an available zone from your given list
 - ``overlayMonsters(cardName~materialName)`` overlays a monster with 1 or more materials
 
-#### Zones
+##### Zones
 - Monster zones: M1 - M5
 - Extra monster zones: EL (left) and ER (right)
 - Spell/Trap zones: S1 - S5

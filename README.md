@@ -79,6 +79,7 @@ Using the macro function you can do many things.
 - Monster zones: M1 - M5
 - Extra monster zones: EL (left) and ER (right)
 - Spell/Trap zones: S1 - S5
+- Opponents monster zones: OM1 - OM5
 
 #### Examples
 - Sends Hello in chat, waits 2 seconds and then sends Bye

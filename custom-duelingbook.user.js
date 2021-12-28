@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.6
+// @version      1.1.7
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -899,7 +899,11 @@
     function normalizeZones(zones) {
         return zones.map((zone) => {
             zone = zone.toLowerCase();
-            let matches = zone.match(/m([1-5]{1})/);
+            let matches = zone.match(/om([1-5]{1})/);
+            if (matches) {
+                return 'M2-' + matches[1];
+            }
+            matches = zone.match(/m([1-5]{1})/);
             if (matches) {
                 return 'M-' + matches[1];
             }
@@ -932,6 +936,16 @@
                 return !player.m4;
             case 'M-5':
                 return !player.m5;
+            case 'M2-1':
+                return !player.opponent.m1;
+            case 'M2-2':
+                return !player.opponent.m2;
+            case 'M2-3':
+                return !player.opponent.m3;
+            case 'M2-4':
+                return !player.opponent.m4;
+            case 'M2-5':
+                return !player.opponent.m5;
             case 'S-1':
                 return !player.s1;
             case 'S-2':

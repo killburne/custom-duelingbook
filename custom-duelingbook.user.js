@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.7
+// @version      1.1.8
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -1025,14 +1025,10 @@
             return;
         }
 
-        console.log('specialSummonFromDeckToZone', name, position, zones);
-
         await doStuffInDeck(() => {
             const card = player.main_arr.find((c) => c.data('cardfront').data('name') === name.trim());
-            console.log('card', card);
             if (card) {
                 for (const zone of normalizeZones(zones)) {
-                    console.log('zone', zone, isZoneEmpty(zone));
                     if (!isZoneEmpty(zone)) {
                         continue;
                     }
@@ -1358,6 +1354,14 @@
             }
         }
     }
+
+    function changeFarfaToNathan() {
+        const usernameEl = document.querySelector('#avatar1 .username_txt');
+        if (usernameEl && usernameEl.textContent === 'Farfa') {
+            usernameEl.textContent = 'Nathan';
+        }
+    }
+
     function applyChanges() {
         if (!GM_config.get('active') || !isOnDb()) {
             return;
@@ -1372,7 +1376,9 @@
         removeDuelNotes();
         hideBackgroundBox();
         replaceThinkEmote();
+        changeFarfaToNathan();
     }
+
     function sendThinkingText() {
         const thinkingText = GM_config.get('thinkingText');
         if (!thinkingText || !((window.unsafeWindow || window).Send)) {
@@ -1381,6 +1387,7 @@
         sendDuelChatMessages([thinkingText]);
         (window.unsafeWindow || window).Send({"action":"Duel", "play":"Thinking"});
     }
+
     function sendOkText() {
         const okText = GM_config.get('okText');
         if (!okText || !((window.unsafeWindow || window).Send)) {
@@ -1388,7 +1395,9 @@
         }
         sendDuelChatMessages([okText]);
     }
+
     let initDone = false;
+
     function init() {
         if (!GM_config.get('active') || !isOnDb()) {
             return;

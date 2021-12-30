@@ -26,6 +26,8 @@ Using the macro function you can do many things.
 - ``botUsername`` The username of the player at the bottom (usually yourself)
 - ``atkAllMonsters`` The combined atk of all monsters on the field you can see
 - ``defAllMonsters`` The combined def of all monsters on the field you can see
+- ``atkAllFaceUpMonsters`` The combined atk of all face up monsters on the field you can see
+- ``defAllFaceUpMonsters`` The combined def of all face up monsters on the field you can see
 
 #### Examples
 - This adds a macro that greets the opponent and says you're the real YOUR USERNAME
@@ -54,7 +56,7 @@ Using the macro function you can do many things.
 - ``sendFromExtraDeckToGY(cardNames)`` sends cards from your extra deck to your GY
 - ``specialSummonToken()`` special summons a token
 - ``specialSummonTokenToZone(zone)`` special summons a token to an available zone from your given list
-- ``sendAllControllingMonstersFromFieldToGY(cardPosition)`` sends all monster with given position (ATK/DEF) or all if no position given to the GY
+- ``sendAllControllingMonstersFromFieldToGY(cardPosition~FaceUpDown)`` sends all monster with given position (ATK/DEF/BOTH) and (FaceUp/FaceDown) or all if no position given to the GY
 - ``sendAllOwnSpellTrapsFromFieldToGY()`` sends all your spell and trap cards from your field to your GY
 - ``sendFromFieldToGY(cardNames)`` sends monsters you control to the GY
 - ``banishFromGY(cardNames)`` banishes monsters from your GY
@@ -92,7 +94,7 @@ Using the macro function you can do many things.
 ### Full Example Macros
     Hello | Hello ${topUsername}, good luck have fun.
     CHAIN | I'll chain to that.
-    Nibiru :( | The total stats of all monsters on the field that i can see are ${atkAllMonsters} ATK / ${defAllMonsters} DEF | ${sendAllControllingMonstersFromFieldToGY()} | ${specialSummonToken()}
+    Nibiru :( | The total stats of all monsters on the field that i can see are ${atkAllFaceUpMonsters} ATK / ${defAllFaceUpMonsters} DEF | ${sendAllControllingMonstersFromFieldToGY(Both~FaceUp)} | ${specialSummonToken()}
     -- LP
     LP/2 | /sub ${halfOfLP}
     -- SS

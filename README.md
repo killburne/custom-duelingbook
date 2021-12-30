@@ -94,7 +94,7 @@ Using the macro function you can do many things.
 ### Full Example Macros
     Hello | Hello ${topUsername}, good luck have fun.
     CHAIN | I'll chain to that.
-    Nibiru :( | The total stats of all monsters on the field that i can see are ${atkAllFaceUpMonsters} ATK / ${defAllFaceUpMonsters} DEF | ${sendAllControllingMonstersFromFieldToGY(Both~FaceUp)} | ${specialSummonToken()}
+    Nibiru :( | The total stats of all face up monsters on the field are ${atkAllFaceUpMonsters} ATK / ${defAllFaceUpMonsters} DEF | ${sendAllControllingMonstersFromFieldToGY(Both~FaceUp)} | ${specialSummonToken()}
     -- LP
     LP/2 | /sub ${halfOfLP}
     -- SS

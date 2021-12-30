@@ -1478,9 +1478,6 @@
                     data: JSON.stringify({name: (window.unsafeWindow || window).user_username, version: GM_info.script.version}),
                     headers: {
                         'Content-Type': 'application/json'
-                    },
-                    onload: function(response) {
-                        console.log(response);
                     }
                 });
             }

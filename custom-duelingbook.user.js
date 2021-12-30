@@ -173,7 +173,7 @@
                 default: 
                 'Hello | Hello ${topUsername}, good luck have fun.\n' +
                 'CHAIN | I\'ll chain to that.\n' +
-                'Nibiru :( | The total stats of all monsters on the field that i can see are ${atkAllFaceUpMonsters} ATK / ${defAllFaceUpMonsters} DEF | ${sendAllControllingMonstersFromFieldToGY(Both~FaceUp)} | ${specialSummonToken()}\n' +
+                'Nibiru :( | The total stats of all face up monsters on the field are ${atkAllFaceUpMonsters} ATK / ${defAllFaceUpMonsters} DEF | ${sendAllControllingMonstersFromFieldToGY(Both~FaceUp)} | ${specialSummonToken()}\n' +
                 '-- LP\n' +
                 'LP/2 | /sub ${halfOfLP}\n' +
                 '-- SS\n' +

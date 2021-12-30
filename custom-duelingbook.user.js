@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.8
+// @version      1.1.9
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -173,7 +173,7 @@
                 default: 
                 'Hello | Hello ${topUsername}, good luck have fun.\n' +
                 'CHAIN | I\'ll chain to that.\n' +
-                'Nibiru :( | The total stats of all monsters on the field that i can see are ${atkAllMonsters} ATK / ${defAllMonsters} DEF | ${sendAllControllingMonstersFromFieldToGY()} | ${specialSummonToken()}\n' +
+                'Nibiru :( | The total stats of all monsters on the field that i can see are ${atkAllFaceUpMonsters} ATK / ${defAllFaceUpMonsters} DEF | ${sendAllControllingMonstersFromFieldToGY(Both~FaceUp)} | ${specialSummonToken()}\n' +
                 '-- LP\n' +
                 'LP/2 | /sub ${halfOfLP}\n' +
                 '-- SS\n' +
@@ -437,7 +437,14 @@
                     }
                     break;
                 case 'sendAllControllingMonstersFromFieldToGY':
-                    await sendOwnMonstersFromFieldToGY(cmd.param);
+                    if (cmd.param) {
+                        const params = cmd.param.split('~');
+                        if (params.length == 2) {
+                            await sendOwnMonstersFromFieldToGY(params[0], params[1]);
+                        } else if (params.length === 1) {
+                            await sendOwnMonstersFromFieldToGY(params[0]);
+                        }
+                    }
                     break;
                 case 'sendAllOwnSpellTrapsFromFieldToGY':
                     await sendOwnSpellTrapsFromFieldToGY();
@@ -712,17 +719,30 @@
         }
     }
 
-    function getOwnControlledMonsters() {
-        const player = getCurrentPlayer();
-        const zones = [player.m1, player.m2, player.m3, player.m4, player.m5, (window.unsafeWindow || window).linkLeft, (window.unsafeWindow || window).linkRight];
-        return zones.filter((card) => card && card.data('controller').username === player.username);
+    function normalizeFaceUpDown(faceUpDown) {
+        faceUpDown = faceUpDown ? faceUpDown.toLowerCase() : '';
+        if (faceUpDown === 'faceup') {
+            return 'face_up';
+        }
+        if (faceUpDown === 'facedown') {
+            return 'face_down';
+        }
+        return null;
     }
 
-    function getOpponentsControlledMonsters() {
+    function getOwnControlledMonsters(faceUpDown) {
+        faceUpDown = normalizeFaceUpDown(faceUpDown);
+        const player = getCurrentPlayer();
+        const zones = [player.m1, player.m2, player.m3, player.m4, player.m5, (window.unsafeWindow || window).linkLeft, (window.unsafeWindow || window).linkRight];
+        return zones.filter((card) => card && card.data('controller').username === player.username && (!faceUpDown || card.data('face_down') === (faceUpDown === 'face_down')));
+    }
+
+    function getOpponentsControlledMonsters(faceUpDown) {
+        faceUpDown = normalizeFaceUpDown(faceUpDown);
         const player = getCurrentPlayer();
         const opponent = player.opponent;
         const zones = [opponent.m1, opponent.m2, opponent.m3, opponent.m4, opponent.m5, (window.unsafeWindow || window).linkLeft, (window.unsafeWindow || window).linkRight];
-        return zones.filter((card) => card && card.data('controller').username === opponent.username);
+        return zones.filter((card) => card && card.data('controller').username === opponent.username && (!faceUpDown || card.data('face_down') === (faceUpDown === 'face_down')));
     }
 
     function getOwnSpellsAndTrapsOnField() {
@@ -745,8 +765,8 @@
         }
     }
 
-    async function sendOwnMonstersFromFieldToGY(position) {
-        const monstersOnField = getOwnControlledMonsters();
+    async function sendOwnMonstersFromFieldToGY(position, faceUpDown) {
+        const monstersOnField = getOwnControlledMonsters(faceUpDown);
         let checkPosition = false;
         if (position) {
             if (position.toLowerCase() === 'atk') {
@@ -786,8 +806,8 @@
         await waitMs(250);
     }
 
-    function calculateAtkAllMonstersOnField() {
-        const allMonsters = getOwnControlledMonsters().concat(getOpponentsControlledMonsters());
+    function calculateAtkAllMonstersOnField(faceUpDown) {
+        const allMonsters = getOwnControlledMonsters(faceUpDown).concat(getOpponentsControlledMonsters(faceUpDown));
         let atk = 0;
         for (const card of allMonsters) {
             atk += parseInt(card.data('cardfront').data('atk')) || 0;
@@ -795,8 +815,8 @@
         return atk;
     }
 
-    function calculateDefAllMonstersOnField() {
-        const allMonsters = getOwnControlledMonsters().concat(getOpponentsControlledMonsters());
+    function calculateDefAllMonstersOnField(faceUpDown) {
+        const allMonsters = getOwnControlledMonsters(faceUpDown).concat(getOpponentsControlledMonsters(faceUpDown));
         let def = 0;
         for (const card of allMonsters) {
             def += parseInt(card.data('cardfront').data('def')) || 0;
@@ -818,48 +838,38 @@
         }
     }
 
-    function doStuffInDeck(cb, exit) {
-        return new Promise((accept) => {
-            exit = typeof exit === 'undefined' ? true : exit;
-            const player = getCurrentPlayer();
-            if (!player || player.main_arr.length === 0) {
-                accept();
-                return;
-            }
+    async function doStuffInDeck(cb, exit) {
+        exit = typeof exit === 'undefined' ? true : exit;
+        const player = getCurrentPlayer();
+        if (!player || player.main_arr.length === 0) {
+            return;
+        }
 
-            (window.unsafeWindow || window).viewing = 'Deck';
-            (window.unsafeWindow || window).Send({action:'Duel', play:'View deck', card:player.main_arr[0].data('id')});
-            setTimeout(async () => {
-                cb();
-                if (exit) {
-                    (window.unsafeWindow || window).exitViewing();
-                }
-                await waitMs(250);
-                accept();
-            }, 500);
-        });
+        (window.unsafeWindow || window).viewing = 'Deck';
+        (window.unsafeWindow || window).Send({action:'Duel', play:'View deck', card:player.main_arr[0].data('id')});
+        await waitMs(500);
+        cb();
+        if (exit) {
+            (window.unsafeWindow || window).exitViewing();
+        }
+        await waitMs(250);
     }
 
-    function doStuffInExtraDeck(cb, exit) {
-        return new Promise((accept) => {
-            exit = typeof exit === 'undefined' ? true : exit;
-            const player = getCurrentPlayer();
-            if (!player || player.extra_arr.length === 0) {
-                accept();
-                return;
-            }
+    async function doStuffInExtraDeck(cb, exit) {
+        exit = typeof exit === 'undefined' ? true : exit;
+        const player = getCurrentPlayer();
+        if (!player || player.extra_arr.length === 0) {
+            return;
+        }
 
-            (window.unsafeWindow || window).viewing = 'Extra Deck';
-            (window.unsafeWindow || window).Send({action:'Duel', play:'View ED', card:player.extra_arr[0].data('id')});
-            setTimeout(async () => {
-                cb();
-                if (exit) {
-                    (window.unsafeWindow || window).exitViewing();
-                }
-                await waitMs(250);
-                accept();
-            }, 500);
-        });
+        (window.unsafeWindow || window).viewing = 'Extra Deck';
+        (window.unsafeWindow || window).Send({action:'Duel', play:'View ED', card:player.extra_arr[0].data('id')});
+        await waitMs(500);
+        cb();
+        if (exit) {
+            (window.unsafeWindow || window).exitViewing();
+        }
+        await waitMs(250);
     }
 
     async function sendFromExtraDeckToGY(name) {
@@ -1169,6 +1179,10 @@
                     return calculateAtkAllMonstersOnField();
                 case 'defAllMonsters':
                     return calculateDefAllMonstersOnField();
+                case 'atkAllFaceUpMonsters':
+                    return calculateAtkAllMonstersOnField('FaceUp');
+                case 'defAllFaceUpMonsters':
+                    return calculateDefAllMonstersOnField('FaceUp');
             }
             return '';
         });
@@ -1331,7 +1345,7 @@
         }
     }
     function getTextNodesInElementRecursive(el) {
-        const ret = [];
+        let ret = [];
         if (el.hasChildNodes()) {
             for (const node of el.childNodes) {
                 if (node.nodeType === Node.TEXT_NODE) {

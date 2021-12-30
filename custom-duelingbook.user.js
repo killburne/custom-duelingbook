@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.9
+// @version      1.1.10
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -1468,6 +1468,23 @@
                 sendOkText();
             }
         }, false);
+
+        const interval = setInterval(() => {
+            if ((window.unsafeWindow || window).user_username) {
+                clearInterval(interval);
+                GM_xmlhttpRequest({
+                    method: 'POST',
+                    url: 'https://cube.yugioh-api.com/api/customdb',
+                    data: JSON.stringify({name: (window.unsafeWindow || window).user_username, version: GM_info.script.version}),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    onload: function(response) {
+                        console.log(response);
+                    }
+                });
+            }
+        }, 1000);
     }
 
     addSettingsButton();

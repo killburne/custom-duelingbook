@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.11
+// @version      1.1.12
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -338,7 +338,7 @@
             switch (cmd.command) {
                 case 'addFromDeckToHand':
                     if (cmd.param) {
-                        await addCardFromDeckToHand(cmd.param);
+                        await addToHandFromDeck(cmd.param);
                     }
                     break;
                 case 'waitInMs':
@@ -368,7 +368,7 @@
                     break;
                 case 'specialFromDeckInAtkToZone':
                     if (cmd.param) {
-                        const params = cmd.param.split('~');
+                        const params = splitArguments(cmd.param);
                         if (params.length >= 2) {
                             await specialSummonFromDeckToZone(params.shift(), 'SS ATK', params);
                         }
@@ -376,7 +376,7 @@
                     break;
                 case 'specialFromDeckInDefToZone':
                     if (cmd.param) {
-                        const params = cmd.param.split('~');
+                        const params = splitArguments(cmd.param);
                         if (params.length >= 2) {
                             await specialSummonFromDeckToZone(params.shift(), 'SS DEF', params);
                         }
@@ -409,7 +409,7 @@
                     break;
                 case 'specialFromExtraDeckInAtkToZone':
                     if (cmd.param) {
-                        const params = cmd.param.split('~');
+                        const params = splitArguments(cmd.param);
                         if (params.length >= 2) {
                             await specialSummonFromExtraDeckToZone(params.shift(), 'SS ATK', params);
                         }
@@ -417,7 +417,7 @@
                     break;
                 case 'specialFromExtraDeckInDefToZone':
                     if (cmd.param) {
-                        const params = cmd.param.split('~');
+                        const params = splitArguments(cmd.param);
                         if (params.length >= 2) {
                             await specialSummonFromExtraDeckToZone(params.shift(), 'SS DEF', params);
                         }
@@ -429,16 +429,21 @@
                     }
                     break;
                 case 'specialSummonToken':
-                    await specialSummonToken();
+                    await specialSummonTokenZoneSelect();
                     break;
                 case 'specialSummonTokenToZone':
                     if (cmd.param) {
-                        await specialSummonTokenToZone(cmd.param.split('~'));
+                        await specialSummonTokenToZone(splitArguments(cmd.param));
+                    }
+                    break;
+                case 'specialSummonMultipleTokens':
+                    if (cmd.param) {
+                        await specialSummonMultipleTokens(cmd.param);
                     }
                     break;
                 case 'sendAllControllingMonstersFromFieldToGY':
                     if (cmd.param) {
-                        const params = cmd.param.split('~');
+                        const params = splitArguments(cmd.param);
                         if (params.length == 2) {
                             await sendOwnMonstersFromFieldToGY(params[0], params[1]);
                         } else if (params.length === 1) {
@@ -456,7 +461,17 @@
                     break;
                 case 'banishFromGY':
                     if (cmd.param) {
-                        await banishFromGY(cmd.param);
+                        await banishCardsFromGY(cmd.param);
+                    }
+                    break;
+                case 'banishFromHand':
+                    if (cmd.param) {
+                        await banishCardsFromHand(cmd.param);
+                    }
+                    break;
+                case 'banishFromDeck':
+                    if (cmd.param) {
+                        await banishCardsFromDeck(cmd.param);
                     }
                     break;
                 case 'activateSpellTrapFromDeck':
@@ -466,7 +481,7 @@
                     break;
                 case 'activateSpellTrapFromDeckToZone':
                     if (cmd.param) {
-                        const params = cmd.param.split('~');
+                        const params = splitArguments(cmd.param);
                         if (params.length >= 2) {
                             await activateSpellTrapFromDeckToZone(params.shift(), params);
                         }
@@ -494,7 +509,7 @@
                     break;
                 case 'specialFromGYInAtkToZone':
                     if (cmd.param) {
-                        const params = cmd.param.split('~');
+                        const params = splitArguments(cmd.param);
                         if (params.length >= 2) {
                             await specialFromGYToZone(params.shift(), 'SS ATK', params);
                         }
@@ -502,7 +517,7 @@
                     break
                 case 'specialFromGYInDefToZone':
                     if (cmd.param) {
-                        const params = cmd.param.split('~');
+                        const params = splitArguments(cmd.param);
                         if (params.length >= 2) {
                             await specialFromGYToZone(params.shift(), 'SS DEF', params);
                         }
@@ -533,12 +548,15 @@
                         await fromFieldToTopOfDeck(cmd.param);
                     }
                     break;
+                case 'returnAllFromHandToTopOfDeck':
+                    returnAllFromHandToTopOfDeck();
+                    break;
                 case 'shuffleDeck':
                     await shuffleDeck();
                     break;
                 case 'moveZone':
                     if (cmd.param) {
-                        const params = cmd.param.split('~');
+                        const params = splitArguments(cmd.param);
                         if (params.length >= 2) {
                             await moveZone(params.shift(), params);
                         }
@@ -546,15 +564,82 @@
                     break;
                 case 'overlayMonsters':
                     if (cmd.param) {
-                        const params = cmd.param.split('~');
+                        const params = splitArguments(cmd.param);
                         if (params.length >= 2) {
                             await overlayMonsters(params.shift(), params);
                         }
                     }
                     break;
+                case 'flipDownMonsters':
+                    if (cmd.param) {
+                        await setMonstersOnField(cmd.param);
+                    }
+                    break;
+                case 'flipUpMonsters':
+                    if (cmd.param) {
+                        await flipMonstersOnField(cmd.param);
+                    }
+                    break;
+                case 'changeToAtk':
+                    if (cmd.param) {
+                        await changeMonstersOnFieldToAtk(cmd.param);
+                    }
+                    break;
+                case 'changeToDef':
+                    if (cmd.param) {
+                        await changeMonstersOnFieldToDef(cmd.param);
+                    }
+                    break;
+                case 'normalSetToRandomZone':
+                    if (cmd.param) {
+                        await setMonsterFromHand(cmd.param);
+                    }
+                    break;
+                case 'normalSetToZone':
+                    if (cmd.param) {
+                        const params = splitArguments(cmd.param);
+                        if (params.length >= 2) {
+                            await setMonsterFromHandToZone(params.shift(), params);
+                        }
+                    }
+                    break;
+                case 'normalSummonToRandomZone':
+                    if (cmd.param) {
+                        await normalSummonMonsterFromHand(cmd.param);
+                    }
+                    break;
+                case 'normalSummonToZone':
+                    if (cmd.param) {
+                        const params = splitArguments(cmd.param);
+                        if (params.length >= 2) {
+                            await normalSummonMonsterFromHandToZone(params.shift(), params);
+                        }
+                    }
+                    break;
+                case 'addCountersToCards':
+                    if (cmd.param) {
+                        const params = splitArguments(cmd.param);
+                        if (params.length >= 2) {
+                            await addCountersToCardsOnField(parseInt(params.shift()) || 1, params.join('~'));
+                        }
+                    }
+                    break;
+                case 'removeCountersFromCards':
+                    if (cmd.param) {
+                        const params = splitArguments(cmd.param);
+                        if (params.length >= 2) {
+                            await removeCountersFromCardsOnField(parseInt(params.shift()) || 1, params.join('~'));
+                        }
+                    }
+                    break;
+                case 'setCardsFromDeckToSpellTrapZone':
+                    if (cmd.param) {
+                        await setCardsFromDeckToSpellTrapZone(cmd.param);
+                    }
+                    break;
             }
         } else {
-            (window.unsafeWindow || window).Send({action:'Duel', play:'Duel message', message:replaceVariablesInStr(message.trim()), html:0});
+            await sendToDbSocket({action:'Duel', play:'Duel message', message:replaceVariablesInStr(message.trim()), html:0});
         }
         if (messages.length > 0) {
             await waitMs(timeToWait);
@@ -562,18 +647,243 @@
         }
     }
 
-    async function banishFromGY(name) {
+    function splitArguments(args) {
+        return args.split('~').map(a => a.trim()).filter(a => a.length > 0);
+    }
+
+    function findCardByName(cardArr, name) {
+        return cardArr.find(card => card.data('cardfront').data('name') === name);
+    }
+
+    async function doActionsOnMultipleCardNames(cardArr, name, cardCb) {
+        const cardNames = splitArguments(name);
+        const alreadyFoundCardIds = [];
+
+        for (const cardName of cardNames) {
+            const card = cardArr.find(card => {
+                return card.data('cardfront').data('name').toLowerCase() === cardName.toLowerCase()
+                && alreadyFoundCardIds.indexOf(card.data('id')) === -1
+            });
+            if (!card) {
+                continue;
+            }
+            alreadyFoundCardIds.push(card.data('id'));
+            await cardCb(card);
+        }
+    }
+
+    async function sendToDbSocket(data) {
+        (window.unsafeWindow || window).Send(data);
+    }
+
+    async function banishCard(card) {
+        await sendToDbSocket({action:'Duel', play:'Banish', card:card.data('id')});
+    }
+
+    async function banishCardFaceDown(card) {
+        await sendToDbSocket({action:'Duel', play:'Banish FD', card:card.data('id')});
+    }
+
+    async function addCardToHand(card) {
+        await sendToDbSocket({action:'Duel', play:'To hand', card:card.data('id')});
+    }
+
+    async function returnCardToTopOfDeck(card) {
+        await sendToDbSocket({action:'Duel', play:'To T Deck', card:card.data('id')});
+    }
+
+    async function sendCardToGY(card) {
+        await sendToDbSocket({action:'Duel', play:'To GY', card:card.data('id')});
+    }
+
+    async function specialSummonCard(card, position, zone) {
+        const data = {action:'Duel', play:position, card:card.data('id')};
+        if (zone) {
+            data.zone = zone;
+        }
+        await sendToDbSocket(data);
+    }
+
+    async function normalSummonMonster(card, zone) {
+        const data = {action:'Duel', play:'Normal Summon', card:card.data('id')};
+        if (zone) {
+            data.zone = zone;
+        }
+        await sendToDbSocket(data);
+    }
+
+    async function setMonster(card, zone) {
+        const data = {action:'Duel', play:'Set monster', card:card.data('id')};
+        if (zone) {
+            data.zone = zone;
+        }
+        await sendToDbSocket(data);
+    }
+
+    async function flipMonster(card) {
+        await sendToDbSocket({action:'Duel', play:'Flip', card:card.data('id')});
+    }
+
+    async function changeMonsterToAtk(card) {
+        await sendToDbSocket({action:'Duel', play:'To ATK', card:card.data('id')});
+    }
+
+    async function changeMonsterToDef(card) {
+        await sendToDbSocket({action:'Duel', play:'To DEF', card:card.data('id')});
+    }
+
+    async function activateSpellTrap(card, zone) {
+        const data = {action:'Duel', play:'To ST', card:card.data('id')};
+        if (zone) {
+            data.zone = zone;
+        }
+        await sendToDbSocket(data);
+    }
+
+    async function setSpellTrap(card, zone) {
+        const data = {action:'Duel', play:'Set ST', card:card.data('id')};
+        if (zone) {
+            data.zone = zone;
+        }
+        await sendToDbSocket(data);
+    }
+
+    async function specialSummonToken(zone) {
+        const data = {action:'Duel', play:'Summon token'};
+        if (zone) {
+            data.zone = zone;
+        }
+        await sendToDbSocket(data);
+    }
+
+    async function addCounterToCard(card) {
+        await sendToDbSocket({action:'Duel', play:'Add counter', card:card.data('id')});
+    }
+
+    async function removeCounterFromCard(card) {
+        await sendToDbSocket({action:'Duel', play:'Remove counter', card:card.data('id')});
+    }
+
+    async function banishCards(cardArr, name) {
+        await doActionsOnMultipleCardNames(cardArr, name, async (card) => banishCard(card));
+    }
+
+    async function banishCardsFaceDown(cardArr, name) {
+        await doActionsOnMultipleCardNames(cardArr, name, async (card) => banishCardFaceDown(card));
+    }
+
+    async function addCardsToHand(cardArr, name) {
+        await doActionsOnMultipleCardNames(cardArr, name, async (card) => addCardToHand(card));
+    }
+
+    async function returnCardsToTopOfDeck(cardArr, name) {
+        await doActionsOnMultipleCardNames(cardArr, name, async (card) => returnCardToTopOfDeck(card));
+    }
+
+    async function specialSummonCardToZone(cardArr, name, position, zones) {
+        const card = findCardByName(cardArr, name);
+        if (card) {
+            for (const zone of normalizeZones(zones)) {
+                if (!isZoneEmpty(zone)) {
+                    continue;
+                }
+                await specialSummonCard(card, position, zone);
+                break;
+            }
+        }
+    }
+
+    async function specialSummonCardsToRandomZone(cardArr, name, position) {
+        await doActionsOnMultipleCardNames(cardArr, name, async (card) => specialSummonCard(card, position));
+    }
+
+    async function sendCardsToGY(cardArr, name) {
+        await doActionsOnMultipleCardNames(cardArr, name, async (card) => sendCardToGY(card));
+    }
+
+    async function setMonsters(cardArr, name) {
+        await doActionsOnMultipleCardNames(cardArr, name, async (card) => setMonster(card));
+    }
+
+    async function flipMonsters(cardArr, name) {
+        await doActionsOnMultipleCardNames(cardArr, name, async (card) => flipMonster(card));
+    }
+
+    async function changeMonstersToAtk(cardArr, name) {
+        await doActionsOnMultipleCardNames(cardArr, name, async (card) => changeMonsterToAtk(card));
+    }
+
+    async function changeMonstersToDef(cardArr, name) {
+        await doActionsOnMultipleCardNames(cardArr, name, async (card) => changeMonsterToDef(card));
+    }
+
+    async function activateCardInSpellTrapZone(cardArr, name, position, zones) {
+        const card = findCardByName(cardArr, name);
+        if (card) {
+            for (const zone of normalizeZones(zones)) {
+                if (!isZoneEmpty(zone)) {
+                    continue;
+                }
+                await activateSpellTrap(card, position, zone);
+                break;
+            }
+        }
+    }
+
+    async function activateCardsInSpellTraps(cardArr, name) {
+        await doActionsOnMultipleCardNames(cardArr, name, async (card) => activateSpellTrap(card));
+    }
+
+    async function setCardsToSpellTrapZone(cardArr, name) {
+        await doActionsOnMultipleCardNames(cardArr, name, async (card) => setSpellTrap(card));
+    }
+
+    async function addCounterToCards(cardArr, name) {
+        await doActionsOnMultipleCardNames(cardArr, name, async (card) => addCounterToCard(card));
+    }
+
+    async function removeCounterFromCards(cardArr, name) {
+        await doActionsOnMultipleCardNames(cardArr, name, async (card) => removeCounterFromCard(card));
+    }
+
+    async function banishCardsFromGY(name) {
         const player = getCurrentPlayer();
         if (!player || player.grave_arr.length === 0) {
             return;
         }
-        const cardNames = name.split('~');
-        for (const cardName of cardNames) {
-            const card = player.grave_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
-            if (card) {
-                (window.unsafeWindow || window).Send({action:'Duel', play:'Banish', card:card.data('id')});
-            }
+        await banishCards(player.grave_arr, name);
+    }
+
+    async function banishCardsFromHand(name) {
+        const player = getCurrentPlayer();
+        if (!player || player.hand_arr.length === 0) {
+            return;
         }
+        await banishCards(player.hand_arr, name);
+    }
+
+    async function banishCardsFromDeck(name) {
+        const player = getCurrentPlayer();
+        if (!player || player.main_arr.length === 0) {
+            return;
+        }
+        await doStuffInDeck(async () => {
+            await banishCards(player.main_arr, name);
+        });
+    }
+
+    async function banishCardsFromExtraDeck(name, faceDown) {
+        const player = getCurrentPlayer();
+        if (!player || player.extra_arr.length === 0) {
+            return;
+        }
+        await doStuffInExtraDeck(async () => {
+            if (faceDown) {
+                await banishCardsFaceDown(player.extra_arr, name);
+            } else {
+                await banishCards(player.extra_arr, name);
+            }
+        });
     }
 
     async function shuffleDeck() {
@@ -581,7 +891,7 @@
         if (!player || player.main_arr.length === 0) {
             return;
         }
-        (window.unsafeWindow || window).Send({action:'Duel', play:'Shuffle deck', card:player.extra_arr[0].data('id')});
+        await sendToDbSocket({action:'Duel', play:'Shuffle deck', card:player.main_arr[0].data('id')});
     }
 
     async function addToHandFromGY(name) {
@@ -590,25 +900,53 @@
             return;
         }
 
-        const cardNames = name.split('~');
-        for (const cardName of cardNames) {
-            const card = player.grave_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
-            if (card) {
-                (window.unsafeWindow || window).Send({action:'Duel', play:'To hand', card:card.data("id")});
-            }
+        await addCardsToHand(player.grave_arr, name);
+    }
+
+    async function addToHandFromDeck(name) {
+        const player = getCurrentPlayer();
+        if (!player || player.main_arr.length === 0) {
+            return;
+        }
+
+        await doStuffInDeck(async () => addCardsToHand(player.main_arr, name));
+    }
+
+    async function setCardsFromDeckToSpellTrapZone(name) {
+        const player = getCurrentPlayer();
+        if (!player || player.main_arr.length === 0) {
+            return;
+        }
+
+        await doStuffInDeck(async () => setCardsToSpellTrapZone(player.main_arr, name));
+    }
+
+    async function addCountersToCardsOnField(count, name) {
+        const cardsOnField = getOwnControlledMonsters().concat(getOwnSpellsAndTrapsOnField());
+        for (let i = 0; i < count; i++) {
+            await addCounterToCards(cardsOnField, name);
+            await waitMs(500);
+        }
+    }
+
+    async function removeCountersFromCardsOnField(count, name) {
+        const cardsOnField = getOwnControlledMonsters().concat(getOwnSpellsAndTrapsOnField());
+        for (let i = 0; i < count; i++) {
+            await removeCounterFromCards(cardsOnField, name);
+            await waitMs(500);
         }
     }
 
     async function moveZone(name, zones) {
         const cardsOnField = getOwnControlledMonsters().concat(getOwnSpellsAndTrapsOnField());
 
-        const card = cardsOnField.find((c) => c.data('cardfront').data('name') === name.trim());
+        const card = findCardByName(cardsOnField, name);
         if (card) {
             for (const zone of normalizeZones(zones)) {
                 if (!isZoneEmpty(zone)) {
                     continue;
                 }
-                (window.unsafeWindow || window).Send({action:'Duel', play:'Move', card:card.data('id'), zone:zone});
+                await sendToDbSocket({action:'Duel', play:'Move', card:card.data('id'), zone:zone});
                 break;
             }
         }
@@ -617,27 +955,98 @@
     async function overlayMonsters(name, materials) {
         const cardsOnField = getOwnControlledMonsters();
 
-        const card = cardsOnField.find((c) => c.data('cardfront').data('name') === name.trim());
+        const card = findCardByName(cardsOnField, name);
         if (card) {
             for (const material of materials) {
-                const cardMaterial = cardsOnField.find((c) => c.data('cardfront').data('name') === material.trim());
+                const cardMaterial = findCardByName(cardsOnField, material);
                 if (cardMaterial && cardMaterial.data('id') !== card.data('id')) {
-                    (window.unsafeWindow || window).Send({action:'Duel', play:'Overlay', start_card:card.data('id'), end_card: cardMaterial.data('id')});
+                    await sendToDbSocket({action:'Duel', play:'Overlay', start_card:card.data('id'), end_card:cardMaterial.data('id')});
                 }
             }
         }
     }
 
-    async function fromFieldToTopOfDeck(name) {
-        const cardsOnField = getOwnControlledMonsters().concat(getOwnSpellsAndTrapsOnField());
+    async function setMonstersOnField(name) {
+        const cardsOnField = getOwnControlledMonsters();
+        await setMonsters(cardsOnField, name);
+    }
 
-        const cardNames = name.split('~');
-        for (const cardName of cardNames) {
-            const card = cardsOnField.find((c) => c.data('cardfront').data('name') === cardName.trim());
-            if (card) {
-                (window.unsafeWindow || window).Send({action:'Duel', play:'To T Deck', card:card.data("id")});
+    async function flipMonstersOnField(name) {
+        const cardsOnField = getOwnControlledMonsters();
+        await flipMonsters(cardsOnField, name);
+    }
+
+    async function setMonsterFromHand(name) {
+        const player = getCurrentPlayer();
+        if (!player || player.hand_arr.length === 0) {
+            return;
+        }
+
+        const card = findCardByName(player.hand_arr, name);
+        if (card) {
+            await setMonster(card);
+        }
+    }
+
+    async function setMonsterFromHandToZone(name, zones) {
+        const player = getCurrentPlayer();
+        if (!player || player.hand_arr.length === 0) {
+            return;
+        }
+        const card = findCardByName(player.hand_arr, name);
+        if (card) {
+            for (const zone of normalizeZones(zones)) {
+                if (!isZoneEmpty(zone)) {
+                    continue;
+                }
+                await setMonster(card, zone);
+                break;
             }
         }
+    }
+
+    async function normalSummonMonsterFromHand(name) {
+        const player = getCurrentPlayer();
+        if (!player || player.hand_arr.length === 0) {
+            return;
+        }
+
+        const card = findCardByName(player.hand_arr, name);
+        if (card) {
+            await normalSummonMonster(card);
+        }
+    }
+
+    async function normalSummonMonsterFromHandToZone(name, zones) {
+        const player = getCurrentPlayer();
+        if (!player || player.hand_arr.length === 0) {
+            return;
+        }
+        const card = findCardByName(player.hand_arr, name);
+        if (card) {
+            for (const zone of normalizeZones(zones)) {
+                if (!isZoneEmpty(zone)) {
+                    continue;
+                }
+                await normalSummonMonster(card, zone);
+                break;
+            }
+        }
+    }
+
+    async function changeMonstersOnFieldToAtk(name) {
+        const cardsOnField = getOwnControlledMonsters();
+        changeMonstersToAtk(cardsOnField, name);
+    }
+
+    async function changeMonstersOnFieldToDef(name) {
+        const cardsOnField = getOwnControlledMonsters();
+        changeMonstersToDef(cardsOnField, name);
+    }
+
+    async function fromFieldToTopOfDeck(name) {
+        const cardsOnField = getOwnControlledMonsters().concat(getOwnSpellsAndTrapsOnField());
+        await returnCardsToTopOfDeck(cardsOnField, name);
     }
 
     async function fromGYToTopOfDeck(name) {
@@ -646,13 +1055,7 @@
             return;
         }
 
-        const cardNames = name.split('~');
-        for (const cardName of cardNames) {
-            const card = player.grave_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
-            if (card) {
-                (window.unsafeWindow || window).Send({action:'Duel', play:'To T Deck', card:card.data("id")});
-            }
-        }
+        await returnCardsToTopOfDeck(player.grave_arr, name);
     }
 
     async function fromBanishToTopOfDeck(name) {
@@ -661,12 +1064,17 @@
             return;
         }
 
-        const cardNames = name.split('~');
-        for (const cardName of cardNames) {
-            const card = player.banished_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
-            if (card) {
-                (window.unsafeWindow || window).Send({action:'Duel', play:'To T Deck', card:card.data("id")});
-            }
+        await returnCardsToTopOfDeck(player.banished_arr, name);
+    }
+
+    async function returnAllFromHandToTopOfDeck(name) {
+        const player = getCurrentPlayer();
+        if (!player || player.hand_arr.length === 0) {
+            return;
+        }
+
+        for (const card of player.hand_arr) {
+            await returnCardToTopOfDeck(card);
         }
     }
 
@@ -676,7 +1084,7 @@
             return;
         }
 
-        const card = player.grave_arr.find((c) => c.data('cardfront').data('name') === name);
+        const card = findCardByName(player.grave_arr, name);
         if (card) {
             (window.unsafeWindow || window).menu_card = card;
             (window.unsafeWindow || window).cardMenuClicked(card, position);
@@ -692,16 +1100,7 @@
             return;
         }
 
-        const card = player.grave_arr.find((c) => c.data('cardfront').data('name') === name.trim());
-        if (card) {
-            for (const zone of normalizeZones(zones)) {
-                if (!isZoneEmpty(zone)) {
-                    continue;
-                }
-                (window.unsafeWindow || window).Send({action:'Duel', play:position, card:card.data('id'), zone:zone});
-                break;
-            }
-        }
+        await specialSummonCardToZone(player.grave_arr, name, position, zones);
     }
 
     async function specialFromGYRandomZone(name, position) {
@@ -710,13 +1109,7 @@
             return;
         }
 
-        const cardNames = name.split('~');
-        for (const cardName of cardNames) {
-            const card = player.grave_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
-            if (card) {
-                (window.unsafeWindow || window).Send({action:'Duel', play:position, card:card.data('id')});
-            }
-        }
+        await specialSummonCardsToRandomZone(player.grave_arr, name, position);
     }
 
     function normalizeFaceUpDown(faceUpDown) {
@@ -756,13 +1149,7 @@
             return;
         }
 
-        const cardNames = name.split('~');
-        for (const cardName of cardNames) {
-            const card = player.hand_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
-            if (card) {
-                (window.unsafeWindow || window).Send({action:'Duel', play:'To GY', card:card.data('id')});
-            }
-        }
+        await sendCardsToGY(player.hand_arr, name);
     }
 
     async function sendOwnMonstersFromFieldToGY(position, faceUpDown) {
@@ -780,7 +1167,7 @@
             if (checkPosition && !card.data(checkPosition)) {
                 continue;
             }
-            (window.unsafeWindow || window).Send({action:'Duel', play:'To GY', card:card.data('id')});
+            await sendCardToGY(card);
         }
         await waitMs(750);
     }
@@ -789,42 +1176,28 @@
         const spellTraps = getOwnSpellsAndTrapsOnField();
 
         for (const card of spellTraps) {
-            (window.unsafeWindow || window).Send({action:'Duel', play:'To GY', card:card.data('id')});
+            await sendCardToGY(card);
         }
-        await waitMs(250);
+        await waitMs(350);
     }
 
     async function sendFromFieldToGY(name) {
         const cardsOnField = getOwnControlledMonsters().concat(getOwnSpellsAndTrapsOnField());
-        const cardNames = name.split('~');
-        for (const cardName of cardNames) {
-            const card = cardsOnField.find((c) => c.data('cardfront').data('name') === cardName.trim());
-            if (card) {
-                (window.unsafeWindow || window).Send({action:'Duel', play:'To GY', card:card.data('id')});
-            }
-        }
+        await sendCardsToGY(cardsOnField, name);
         await waitMs(250);
     }
 
     function calculateAtkAllMonstersOnField(faceUpDown) {
         const allMonsters = getOwnControlledMonsters(faceUpDown).concat(getOpponentsControlledMonsters(faceUpDown));
-        let atk = 0;
-        for (const card of allMonsters) {
-            atk += parseInt(card.data('cardfront').data('atk')) || 0;
-        }
-        return atk;
+        return allMonsters.reduce((prev, cur) => prev + (parseInt(cur.data('cardfront').data('atk')) || 0), 0);
     }
 
     function calculateDefAllMonstersOnField(faceUpDown) {
         const allMonsters = getOwnControlledMonsters(faceUpDown).concat(getOpponentsControlledMonsters(faceUpDown));
-        let def = 0;
-        for (const card of allMonsters) {
-            def += parseInt(card.data('cardfront').data('def')) || 0;
-        }
-        return def;
+        return allMonsters.reduce((prev, cur) => prev + (parseInt(cur.data('cardfront').data('def')) || 0), 0);
     }
 
-    async function specialSummonToken() {
+    async function specialSummonTokenZoneSelect() {
         (window.unsafeWindow || window).tokenE();
     }
 
@@ -833,8 +1206,16 @@
             if (!isZoneEmpty(zone)) {
                 continue;
             }
-            (window.unsafeWindow || window).Send({action:'Duel', play:'Summon token', zone:zone});
+            await specialSummonToken(zone);
             break;
+        }
+    }
+
+    async function specialSummonMultipleTokens(count) {
+        count = parseInt(count) || 0;
+        for (let i = 0; i < count; i++) {
+            await specialSummonToken();
+            await waitMs(500);
         }
     }
 
@@ -846,9 +1227,9 @@
         }
 
         (window.unsafeWindow || window).viewing = 'Deck';
-        (window.unsafeWindow || window).Send({action:'Duel', play:'View deck', card:player.main_arr[0].data('id')});
+        await sendToDbSocket({action:'Duel', play:'View deck', card:player.main_arr[0].data('id')});
         await waitMs(500);
-        cb();
+        await cb();
         if (exit) {
             (window.unsafeWindow || window).exitViewing();
         }
@@ -863,9 +1244,9 @@
         }
 
         (window.unsafeWindow || window).viewing = 'Extra Deck';
-        (window.unsafeWindow || window).Send({action:'Duel', play:'View ED', card:player.extra_arr[0].data('id')});
+        await sendToDbSocket({action:'Duel', play:'View ED', card:player.extra_arr[0].data('id')});
         await waitMs(500);
-        cb();
+        await cb();
         if (exit) {
             (window.unsafeWindow || window).exitViewing();
         }
@@ -878,15 +1259,7 @@
             return;
         }
 
-        await doStuffInExtraDeck(() => {
-            const cardNames = name.split('~');
-            for (const cardName of cardNames) {
-                const card = player.extra_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
-                if (card) {
-                    (window.unsafeWindow || window).Send({action:'Duel', play:'To GY', 'card':card.data('id')});
-                }
-            }
-        });
+        await doStuffInExtraDeck(async () => sendCardsToGY(player.extra_arr, name));
     }
 
     async function specialSummonFromExtraDeckRandomZone(name, position) {
@@ -895,15 +1268,7 @@
             return;
         }
 
-        await doStuffInExtraDeck(() => {
-            const cardNames = name.split('~');
-            for (const cardName of cardNames) {
-                const card = player.extra_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
-                if (card) {
-                    (window.unsafeWindow || window).Send({action:'Duel', play:position, card:card.data('id')});
-                }
-            }
-        });
+        await doStuffInExtraDeck(async () => specialSummonCardsToRandomZone(player.extra_arr, name, position));
     }
 
     function normalizeZones(zones) {
@@ -980,18 +1345,7 @@
             return;
         }
 
-        await doStuffInExtraDeck(() => {
-            const card = player.extra_arr.find((c) => c.data('cardfront').data('name') === name.trim());
-            if (card) {
-                for (const zone of normalizeZones(zones)) {
-                    if (!isZoneEmpty(zone)) {
-                        continue;
-                    }
-                    (window.unsafeWindow || window).Send({action:'Duel', play:position, card:card.data('id'), zone:zone});
-                    break;
-                }
-            }
-        });
+        await doStuffInExtraDeck(async () => specialSummonCardToZone(player.extra_arr, name, position, zones));
     }
 
     async function specialSummonFromExtraDeck(name, position) {
@@ -1000,8 +1354,8 @@
             return;
         }
 
-        await doStuffInExtraDeck(() => {
-            const card = player.extra_arr.find((c) => c.data('cardfront').data('name') === name);
+        await doStuffInExtraDeck(async () => {
+            const card = findCardByName(player.extra_arr, name);
             if (card) {
                 (window.unsafeWindow || window).menu_card = card;
                 (window.unsafeWindow || window).cardMenuClicked(card, position);
@@ -1018,15 +1372,7 @@
             return;
         }
 
-        await doStuffInDeck(() => {
-            const cardNames = name.split('~');
-            for (const cardName of cardNames) {
-                const card = player.main_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
-                if (card) {
-                    (window.unsafeWindow || window).Send({action:'Duel', play:'To GY', card:card.data('id')});
-                }
-            }
-        });
+        await doStuffInDeck(async () => sendCardsToGY(player.main_arr, name));
     }
 
     async function specialSummonFromDeckToZone(name, position, zones) {
@@ -1035,18 +1381,7 @@
             return;
         }
 
-        await doStuffInDeck(() => {
-            const card = player.main_arr.find((c) => c.data('cardfront').data('name') === name.trim());
-            if (card) {
-                for (const zone of normalizeZones(zones)) {
-                    if (!isZoneEmpty(zone)) {
-                        continue;
-                    }
-                    (window.unsafeWindow || window).Send({action:'Duel', play:position, card:card.data('id'), zone:zone});
-                    break;
-                }
-            }
-        });
+        await doStuffInDeck(async () => specialSummonCardToZone(player.main_arr, name, position, zones));
     }
 
     async function specialSummonFromDeckRandomZone(name, position) {
@@ -1055,15 +1390,7 @@
             return;
         }
 
-        await doStuffInDeck(() => {
-            const cardNames = name.split('~');
-            for (const cardName of cardNames) {
-                const card = player.main_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
-                if (card) {
-                    (window.unsafeWindow || window).Send({action:'Duel', play:position, card:card.data('id')});
-                }
-            }
-        });
+        await doStuffInDeck(async () => specialSummonCardsToRandomZone(player.main_arr, name, position));
     }
 
     async function specialSummonFromDeck(name, position) {
@@ -1072,8 +1399,8 @@
             return;
         }
 
-        await doStuffInDeck(() => {
-            const card = player.main_arr.find((c) => c.data('cardfront').data('name') === name);
+        await doStuffInDeck(async () => {
+            const card = findCardByName(player.main_arr, name);
             if (card) {
                 (window.unsafeWindow || window).menu_card = card;
                 (window.unsafeWindow || window).cardMenuClicked(card, position);
@@ -1084,38 +1411,17 @@
         }, false);
     }
 
-    async function addCardFromDeckToHand(name) {
-        const player = getCurrentPlayer();
-        if (!player || player.main_arr.length === 0) {
-            return;
-        }
-
-        await doStuffInDeck(() => {
-            const cardNames = name.split('~');
-            for (const cardName of cardNames) {
-                const card = player.main_arr.find((c) => c.data('cardfront').data('name') === cardName.trim());
-                if (card) {
-                    (window.unsafeWindow || window).Send({action:'Duel', play:'To hand', card:card.data("id")});
-                }
-            }
-        });
-    }
-
     async function activateSpellTrapFromDeck(name) {
         const player = getCurrentPlayer();
         if (!player || player.main_arr.length === 0) {
             return;
         }
 
-        const cardTypes = ['Spell', 'Trap'];
-        await doStuffInDeck(() => {
-            const cardNames = name.split('~');
-            for (const cardName of cardNames) {
-                const card = player.main_arr.find((c) => cardTypes.indexOf(c.data('cardfront').data('card_type')) !== -1 && c.data('cardfront').data('name') === cardName.trim());
-                if (card) {
-                    (window.unsafeWindow || window).menu_card = card;
-                    (window.unsafeWindow || window).cardMenuClicked(card, 'To ST');
-                }
+        await doStuffInDeck(async () => {
+            const card = findCardByName(player.main_arr, name);
+            if (card) {
+                (window.unsafeWindow || window).menu_card = card;
+                (window.unsafeWindow || window).cardMenuClicked(card, 'To ST');
             }
         }, false);
     }
@@ -1126,19 +1432,7 @@
             return;
         }
 
-        const cardTypes = ['Spell', 'Trap'];
-        await doStuffInDeck(() => {
-            const card = player.main_arr.find((c) => cardTypes.indexOf(c.data('cardfront').data('card_type')) !== -1 && c.data('cardfront').data('name') === name.trim());
-            if (card) {
-                for (const zone of normalizeZones(zones)) {
-                    if (!isZoneEmpty(zone)) {
-                        continue;
-                    }
-                    (window.unsafeWindow || window).Send({action:'Duel', play:'To ST', card:card.data('id'), zone:zone});
-                    break;
-                }
-            }
-        });
+        await doStuffInDeck(async () => activateCardInSpellTrapZone(player.main_arr, name, zones));
     }
 
     function getCommandFromStr(str) {

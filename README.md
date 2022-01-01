@@ -76,6 +76,20 @@ Using the macro function you can do many things.
 - ``shuffleDeck()`` shuffles your deck
 - ``moveZone(cardName~zone)`` MOVES a card on the field to an available zone from your given list
 - ``overlayMonsters(cardName~materialName)`` overlays a monster with 1 or more materials
+- ``specialSummonMultipleTokens(count)`` summons multiple tokens to available zones chosen by DB
+- ``returnAllFromHandToTopOfDeck()`` returns all cards in your hand to the top of your deck
+- ``banishFromHand(cardNames)`` banishes cards from hand
+- ``banishFromDeck(cardNames)`` banishes cards from deck
+- ``flipDownMonsters(cardNames)`` flips down monsters
+- ``flipUpMonsters(cardNames)`` flips up monsters
+- ``changeToAtk(cardNames)`` changes monsters to attack position
+- ``changeToDef(cardNames)`` changes monsters to defense position
+- ``normalSetToRandomZone(cardName)`` normal sets a monster to a random zone
+- ``normalSetToZone(cardName~zone)`` normal sets a monster to an available zone from your given list
+- ``normalSummonToRandomZone(cardName)`` normal summons a monster to a random zone
+- ``normalSummonToZone(cardName~zone)`` normal summons a monsters to an available zone from your given list
+- ``addCountersToCards(count~cardNames)`` adds counters to cards
+- ``removeCountersFromCards(count~cardNames)`` removes counters from cards
 
 ##### Zones
 - Monster zones: M1 - M5

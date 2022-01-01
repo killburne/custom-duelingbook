@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.12
+// @version      1.1.13
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -449,6 +449,8 @@
                         } else if (params.length === 1) {
                             await sendOwnMonstersFromFieldToGY(params[0]);
                         }
+                    } else {
+                        await sendOwnMonstersFromFieldToGY();
                     }
                     break;
                 case 'sendAllOwnSpellTrapsFromFieldToGY':
@@ -817,14 +819,14 @@
         await doActionsOnMultipleCardNames(cardArr, name, async (card) => changeMonsterToDef(card));
     }
 
-    async function activateCardInSpellTrapZone(cardArr, name, position, zones) {
+    async function activateCardInSpellTrapZone(cardArr, name, zones) {
         const card = findCardByName(cardArr, name);
         if (card) {
             for (const zone of normalizeZones(zones)) {
                 if (!isZoneEmpty(zone)) {
                     continue;
                 }
-                await activateSpellTrap(card, position, zone);
+                await activateSpellTrap(card, zone);
                 break;
             }
         }
@@ -867,9 +869,7 @@
         if (!player || player.main_arr.length === 0) {
             return;
         }
-        await doStuffInDeck(async () => {
-            await banishCards(player.main_arr, name);
-        });
+        await doStuffInDeck(async () => banishCards(player.main_arr, name));
     }
 
     async function banishCardsFromExtraDeck(name, faceDown) {
@@ -1036,12 +1036,12 @@
 
     async function changeMonstersOnFieldToAtk(name) {
         const cardsOnField = getOwnControlledMonsters();
-        changeMonstersToAtk(cardsOnField, name);
+        await changeMonstersToAtk(cardsOnField, name);
     }
 
     async function changeMonstersOnFieldToDef(name) {
         const cardsOnField = getOwnControlledMonsters();
-        changeMonstersToDef(cardsOnField, name);
+        await changeMonstersToDef(cardsOnField, name);
     }
 
     async function fromFieldToTopOfDeck(name) {
@@ -1381,7 +1381,7 @@
             return;
         }
 
-        await doStuffInDeck(async () => specialSummonCardToZone(player.main_arr, name, position, zones));
+        await doStuffInDeck(async () => await specialSummonCardToZone(player.main_arr, name, position, zones));
     }
 
     async function specialSummonFromDeckRandomZone(name, position) {

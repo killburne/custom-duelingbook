@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.13
+// @version      1.1.14
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -1381,7 +1381,7 @@
             return;
         }
 
-        await doStuffInDeck(async () => await specialSummonCardToZone(player.main_arr, name, position, zones));
+        await doStuffInDeck(async () => specialSummonCardToZone(player.main_arr, name, position, zones));
     }
 
     async function specialSummonFromDeckRandomZone(name, position) {
@@ -1768,6 +1768,14 @@
                 });
             }
         }, 1000);
+
+        document.onkeyup = (e) => {
+            if (e.altKey && e.which === 82) {
+                if ((window.unsafeWindow || window).preview) {
+                    (window.unsafeWindow || window).open('https://db.ygorganization.com/search#quick:' + encodeURIComponent((window.unsafeWindow || window).preview.data('name')), '_blank').focus();
+                }
+            }
+        };
     }
 
     addSettingsButton();

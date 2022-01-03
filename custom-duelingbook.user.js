@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.14
+// @version      1.1.15
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -14,6 +14,7 @@
 // @grant              GM_getValue
 // @grant              GM_setValue
 // @grant              GM_xmlhttpRequest
+// @grant              GM_openInTab
 // @connect yugioh-api.com
 // @connect raw.githubusercontent.com
 // @connect github.com
@@ -1772,7 +1773,9 @@
         document.onkeyup = (e) => {
             if (e.altKey && e.which === 82) {
                 if ((window.unsafeWindow || window).preview) {
-                    (window.unsafeWindow || window).open('https://db.ygorganization.com/search#quick:' + encodeURIComponent((window.unsafeWindow || window).preview.data('name')), '_blank').focus();
+                    GM_openInTab('https://db.ygorganization.com/search#quick:' + encodeURIComponent((window.unsafeWindow || window).preview.data('name')), {
+                        active: true
+                    });
                 }
             }
         };

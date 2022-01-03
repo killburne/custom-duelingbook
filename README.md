@@ -4,6 +4,10 @@
 - Install [Tampermonkey](https://www.tampermonkey.net/) for your Browser.
 - Then open the [Custom DB Script](https://github.com/killburne/custom-duelingbook/raw/master/custom-duelingbook.user.js) and click install.
 
+## Hotkeys
+
+- ``Alt`` + ``R`` opens the ruling db link of the current card in the detail view
+
 ## Macros
 Using the macro function you can do many things.
 - Sending a message in chat

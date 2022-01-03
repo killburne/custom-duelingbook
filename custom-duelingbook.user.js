@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.15
+// @version      1.1.16
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -16,6 +16,7 @@
 // @grant              GM_xmlhttpRequest
 // @grant              GM_openInTab
 // @connect yugioh-api.com
+// @connect yugioh.app
 // @connect raw.githubusercontent.com
 // @connect github.com
 // @connect *
@@ -63,7 +64,7 @@
                 label: 'Think Emote Url',
                 type: 'text',
                 size: 300,
-                default: 'https://www.yugioh-api.com/thinkmech.png'
+                default: 'https://custom-db.yugioh.app/assets/thinkmech.png'
             },
             thinkingText: {
                 label: 'Think Text',
@@ -126,7 +127,7 @@
                 label: 'Background image url',
                 type: 'text',
                 size: 300,
-                default: 'https://wallpaperaccess.com/full/1429125.jpg'
+                default: 'https://custom-db.yugioh.app/assets/blue-eyes-background.jpg'
             },
             hideStartPageMonster: {
                 label: 'Hide start page monster',
@@ -137,7 +138,7 @@
                 label: 'Start page monster image url',
                 type: 'text',
                 size: 300,
-                default: 'https://www.yugioh-api.com/dragonmaid-chamber.png'
+                default: 'https://custom-db.yugioh.app/assets/dragonmaid-chamber.png'
             },
             hideBackgroundBox: {
                 label: 'Hide background box',
@@ -148,13 +149,13 @@
                 label: 'Ok sound url',
                 type: 'text',
                 size: 300,
-                default: 'https://www.yugioh-api.com/pollo.mp3'
+                default: 'https://custom-db.yugioh.app/assets/pollo.mp3'
             },
             okImageUrl: {
                 label: 'Ok image url',
                 type: 'text',
                 size: 300,
-                default: 'https://ae01.alicdn.com/kf/Hc4e3b9a69e1e456cb88c9862edb86a92l/Thumbs-Up-Chicken-Arm-Toy-Chicken-Gag-Gift-Wearing-Artificial-Dinosaur-Arms-Pet-Themed-Party-Funny.jpg_220x220xz.jpg'
+                default: 'https://custom-db.yugioh.app/assets/chicken-pollo.jpg'
             },
             hideWatchersList: {
                 label: 'Hide watchers list',
@@ -171,8 +172,7 @@
                 type: 'textarea',
                 cols: 300,
                 rows: 20,
-                default: 
-                'Hello | Hello ${topUsername}, good luck have fun.\n' +
+                default: 'Hello | Hello ${topUsername}, good luck have fun.\n' +
                 'CHAIN | I\'ll chain to that.\n' +
                 'Nibiru :( | The total stats of all face up monsters on the field are ${atkAllFaceUpMonsters} ATK / ${defAllFaceUpMonsters} DEF | ${sendAllControllingMonstersFromFieldToGY(Both~FaceUp)} | ${specialSummonToken()}\n' +
                 '-- LP\n' +
@@ -197,6 +197,43 @@
             }
         }
     });
+
+    function migrateNewUrl() {
+        const migrations = [
+            {
+                key: 'thinkEmoteUrl',
+                old: 'https://www.yugioh-api.com/thinkmech.png',
+                new: 'https://custom-db.yugioh.app/assets/thinkmech.png'
+            },
+            {
+                key: 'startPageMonsterUrl',
+                old: 'https://www.yugioh-api.com/dragonmaid-chamber.png',
+                new: 'https://custom-db.yugioh.app/assets/dragonmaid-chamber.png'
+            },
+            {
+                key: 'backgroundUrl',
+                old: 'https://wallpaperaccess.com/full/1429125.jpg',
+                new: 'https://custom-db.yugioh.app/assets/blue-eyes-background.jpg'
+            },
+            {
+                key: 'okSoundUrl',
+                old: 'https://www.yugioh-api.com/pollo.mp3',
+                new: 'https://custom-db.yugioh.app/assets/pollo.mp3'
+            },
+            {
+                key: 'okImageUrl',
+                old: 'https://ae01.alicdn.com/kf/Hc4e3b9a69e1e456cb88c9862edb86a92l/Thumbs-Up-Chicken-Arm-Toy-Chicken-Gag-Gift-Wearing-Artificial-Dinosaur-Arms-Pet-Themed-Party-Funny.jpg_220x220xz.jpg',
+                new: 'https://custom-db.yugioh.app/assets/chicken-pollo.jpg'
+            }
+        ];
+        for (const migration of migrations) {
+            if (GM_config.get(migration.key) === migration.old) {
+                GM_config.set(migration.key, migration.new);
+            }
+        }
+    }
+
+    migrateNewUrl();
 
     let bannedWords = [];
 

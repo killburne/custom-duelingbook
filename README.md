@@ -12,7 +12,7 @@
 Using the macro function you can do many things.
 - Sending a message in chat
 - Add cards from deck to hand
-- Special summon monsters from deck in ATK/DEF and either open the zone chooser or just summon it a random zone.
+- Special summon monsters from deck in ATK/DEF and either open the zone chooser or just summon it to a random zone.
 - Send a card from deck to GY
 
 ### Syntax

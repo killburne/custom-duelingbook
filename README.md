@@ -6,7 +6,7 @@
 
 ## Hotkeys
 
-- ``Alt`` + ``R`` opens the ruling db link of the current card in the detail view
+- ``F2`` (you can also configure this in the settings) opens the ruling db link of the current card in the detail view
 
 ## Macros
 Using the macro function you can do many things.

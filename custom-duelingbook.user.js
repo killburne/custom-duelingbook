@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.17
+// @version      1.1.18
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -188,6 +188,79 @@
                 'Send Dragoon Garnets | ${sendFromDeckToGY(Dark Magician~Red-Eyes Black Dragon)}\n' +
                 '-- Search\n' +
                 'Add Invo | ${addFromDeckToHand(Invocation)}'
+            },
+            hotkeyRulingPage: {
+                label: 'Hotkey to open the ruling db link for the current card in the detail view',
+                type: 'hotkey',
+                default: ['F2']
+            }
+        },
+        types: {
+            hotkey: {
+                default: null,
+                toNode: function() {
+                    const configId = this.configId;
+                    const field = this.settings;
+                    const value = this.value;
+                    const id = this.id;
+                    const create = this.create;
+                    const retNode = create('div', { className: 'config_var', id: `${configId}_${id}_var` });
+
+                    retNode.appendChild(create('label', {
+                        id: `${configId}_${id}_input_label`,
+                        for: `${configId}_${id}_input`,
+                        className: 'field_label',
+                        innerHTML: field.label
+                    }));
+
+                    let currentValue = [];
+                    if (value) {
+                        currentValue = value;
+                    } else if (field.default && value !== null) {
+                        currentValue = field.default;
+                    }
+
+                    const keysDown = new Set();
+
+                    const input = create('input', {
+                        id: `${configId}_${id}_input`,
+                        className: 'block',
+                        value: currentValue.join(' + ').toUpperCase(),
+                        onkeydown: function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            keysDown.add(e.key);
+
+                            input.value = Array.from(keysDown).join(' + ').toUpperCase();
+                            input.setAttribute('data-keys', JSON.stringify(Array.from(keysDown)));
+                        },
+                        onkeyup: function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            keysDown.clear();
+                        }
+                    });
+
+                    input.setAttribute('data-keys', JSON.stringify(currentValue));
+
+                    retNode.appendChild(input);
+
+                    return retNode;
+                },
+                toValue: function() {
+                    const configId = this.configId;
+                    const id = this.id;
+                    const wrapper = this.wrapper;
+                    if (!wrapper) {
+                        return;
+                    }
+                    const inputs = wrapper.getElementsByTagName('input');
+                    if (inputs.length !== 1) {
+                        return;
+                    }
+                    const keys = JSON.parse(inputs[0].getAttribute('data-keys'));
+                    return keys;
+                }
             }
         },
         events: {
@@ -197,6 +270,10 @@
             }
         }
     });
+
+    function getConfigEntry(key) {
+        return GM_config.get(key);
+    }
 
     function migrateNewUrl() {
         const migrations = [
@@ -274,7 +351,7 @@
             wrapperEl.remove();
         }
 
-        const macroTexts = GM_config.get('macroTexts');
+        const macroTexts = getConfigEntry('macroTexts');
         if (!macroTexts) {
             return;
         }
@@ -1257,8 +1334,7 @@
         }
     }
 
-    async function doStuffInDeck(cb, exit) {
-        exit = typeof exit === 'undefined' ? true : exit;
+    async function doStuffInDeck(cb, exit = false) {
         const player = getCurrentPlayer();
         if (!player || player.main_arr.length === 0) {
             return;
@@ -1274,8 +1350,7 @@
         await waitMs(250);
     }
 
-    async function doStuffInExtraDeck(cb, exit) {
-        exit = typeof exit === 'undefined' ? true : exit;
+    async function doStuffInExtraDeck(cb, exit = false) {
         const player = getCurrentPlayer();
         if (!player || player.extra_arr.length === 0) {
             return;
@@ -1521,7 +1596,7 @@
     }
 
     function makeAllSleevesDefault() {
-        const sleeveUrl = GM_config.get('sleeveUrl');
+        const sleeveUrl = getConfigEntry('sleeveUrl');
         if (!sleeveUrl) {
             return;
         }
@@ -1532,7 +1607,7 @@
         }
     }
     function replaceThinkEmote() {
-        const thinkEmoteUrl = GM_config.get('thinkEmoteUrl');
+        const thinkEmoteUrl = getConfigEntry('thinkEmoteUrl');
         if (!thinkEmoteUrl) {
             return;
         }
@@ -1547,7 +1622,7 @@
         }
     }
     function hideProfilePictures() {
-        const pfpUrls = GM_config.get('pfpUrls').split('\n').map(p => p.trim()).filter(p => !!p);
+        const pfpUrls = getConfigEntry('pfpUrls').split('\n').map(p => p.trim()).filter(p => !!p);
         //var bottomPfpUrls = GM_config.get('bottomPfpUrl').split('\n').map(p => p.trim()).filter(p => !!p);
 
         if (pfpUrls.length > 0) {
@@ -1562,7 +1637,7 @@
                 }
             }
 
-            const ownPfpUrl = GM_config.get('ownPfpUrl');
+            const ownPfpUrl = getConfigEntry('ownPfpUrl');
 
             if (bottomUsername != (window.unsafeWindow || window).user_username) {
                 const botRandom = xmur3(bottomUsername);
@@ -1590,7 +1665,7 @@
         }*/
     }
     function setBackgroundImage() {
-        const backgroundUrl = GM_config.get('backgroundUrl');
+        const backgroundUrl = getConfigEntry('backgroundUrl');
         if (!backgroundUrl) {
             return;
         }
@@ -1609,14 +1684,14 @@
         }
     }
     function setOkSound() {
-        const okSoundUrl = GM_config.get('okSoundUrl');
+        const okSoundUrl = getConfigEntry('okSoundUrl');
         if (!okSoundUrl) {
             return;
         }
         (window.unsafeWindow || window).Ok = okSoundUrl;
     }
     function setOkImage() {
-        const okImageUrl = GM_config.get('okImageUrl');
+        const okImageUrl = getConfigEntry('okImageUrl');
         if (!okImageUrl) {
             return;
         }
@@ -1631,13 +1706,13 @@
         if (!el) {
             return;
         }
-        if (GM_config.get('hideStartPageMonster')) {
+        if (getConfigEntry('hideStartPageMonster')) {
             el.setAttribute('hidden', '');
             return;
         } else {
             el.removeAttribute('hidden');
         }
-        const startPageMonsterUrl = GM_config.get('startPageMonsterUrl');
+        const startPageMonsterUrl = getConfigEntry('startPageMonsterUrl');
         if (!startPageMonsterUrl) {
             return;
         }
@@ -1646,14 +1721,14 @@
         }
     }
     function hideBackgroundBox() {
-        const hideBackgroundBox = GM_config.get('hideBackgroundBox');
+        const hideBackgroundBox = getConfigEntry('hideBackgroundBox');
         const el = document.getElementById('circuit_cover');
         if (el) {
             el.style.display = hideBackgroundBox ? 'none' : 'block';
         }
     }
     function removeWatchersList() {
-        const hideWatchersList = GM_config.get('hideWatchersList');
+        const hideWatchersList = getConfigEntry('hideWatchersList');
         if (!hideWatchersList) {
             return;
         }
@@ -1668,7 +1743,7 @@
         }
     }
     function removeDuelNotes() {
-        const hideDuelNotes = GM_config.get('hideDuelNotes');
+        const hideDuelNotes = getConfigEntry('hideDuelNotes');
         if (!hideDuelNotes) {
             return;
         }
@@ -1690,7 +1765,7 @@
         return ret;
     }
     function censorChat() {
-        if (!GM_config.get('active') || !GM_config.get('censorChat')) {
+        if (!getConfigEntry('active') || !getConfigEntry('censorChat')) {
             return;
         }
         for (const msg of document.querySelectorAll('#duel .cout_txt .os-content > font')) {
@@ -1702,7 +1777,7 @@
     }
 
     function applyChanges() {
-        if (!GM_config.get('active') || !isOnDb()) {
+        if (!getConfigEntry('active') || !isOnDb()) {
             return;
         }
         makeAllSleevesDefault();
@@ -1718,7 +1793,7 @@
     }
 
     function sendThinkingText() {
-        const thinkingText = GM_config.get('thinkingText');
+        const thinkingText = getConfigEntry('thinkingText');
         if (!thinkingText || !((window.unsafeWindow || window).Send)) {
             return;
         }
@@ -1727,7 +1802,7 @@
     }
 
     function sendOkText() {
-        const okText = GM_config.get('okText');
+        const okText = getConfigEntry('okText');
         if (!okText || !((window.unsafeWindow || window).Send)) {
             return;
         }
@@ -1739,7 +1814,7 @@
     let initDone = false;
 
     function init() {
-        if (!GM_config.get('active') || !isOnDb()) {
+        if (!getConfigEntry('active') || !isOnDb()) {
             return;
         }
         addMacroButtons();
@@ -1809,12 +1884,23 @@
             }
         }, 1000);
 
+        const keysDown = new Set();
         document.onkeyup = (e) => {
-            if (e.altKey && e.which === 82) {
-                if ((window.unsafeWindow || window).preview) {
-                    GM_openInTab('https://db.ygorganization.com/search#quick:' + encodeURIComponent((window.unsafeWindow || window).preview.data('name')), {
-                        active: true
-                    });
+            keysDown.clear();
+        };
+        document.onkeydown = (e) => {
+            keysDown.add(e.key);
+            const hotkey = getConfigEntry('hotkeyRulingPage');
+            if (Array.isArray(hotkey) && hotkey.length > 0 && keysDown.size === hotkey.length) {
+                const missingKeys = hotkey.filter(h => !keysDown.has(h));
+                if (missingKeys.length === 0) {
+                    e.preventDefault();
+                    keysDown.clear();
+                    if ((window.unsafeWindow || window).preview) {
+                        GM_openInTab('https://db.ygorganization.com/search#quick:' + encodeURIComponent((window.unsafeWindow || window).preview.data('name')), {
+                            active: true
+                        });
+                    }
                 }
             }
         };
@@ -1835,11 +1921,11 @@
     addSettingsButton();
     init();
 
-    const bannedWordsList = GM_config.get('bannedWordsList');
+    const bannedWordsList = getConfigEntry('bannedWordsList');
     if (bannedWordsList) {
         GM_xmlhttpRequest({
             method: 'GET',
-            url: GM_config.get('bannedWordsList'),
+            url: getConfigEntry('bannedWordsList'),
             onload: (response) => {
                 bannedWords = response.responseText.split('\n').filter((w) => !!w.trim());
                 init();

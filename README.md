@@ -3,6 +3,7 @@
 
 - Install [Tampermonkey](https://www.tampermonkey.net/) for your Browser.
 - Then open the [Custom DB Script](https://github.com/killburne/custom-duelingbook/raw/master/custom-duelingbook.user.js) and click install.
+- After this go to DB and you'll see in the bottom left corner a button to open the settings to customize it to your liking
 
 ## Hotkeys
 

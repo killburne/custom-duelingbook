@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.21
+// @version      1.1.22
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -1600,23 +1600,6 @@
         });
     }
 
-    function makeAllSleevesDefault() {
-        const sleeveUrl = getConfigEntry('sleeveUrl');
-        if (!sleeveUrl) {
-            return;
-        }
-        for (const back of document.querySelectorAll('.card .cardback')) {
-            if (back.getElementsByClassName('skillback').length > 0) {
-                continue;
-            }
-            const backImages = back.getElementsByTagName('img');
-            for (const img of backImages) {
-                if (img.getAttribute('src') !== sleeveUrl) {
-                    img.setAttribute('src', sleeveUrl);
-                }
-            }
-        }
-    }
     function replaceThinkEmote() {
         const thinkEmoteUrl = getConfigEntry('thinkEmoteUrl');
         if (!thinkEmoteUrl) {
@@ -1775,11 +1758,18 @@
         return str.split(/\b/).map((word) => bannedWords.includes(word.toLowerCase()) ? getCensoredWord(word, showTitle) : word).join('');
     }
 
+    const originalSleeveStart = (window.unsafeWindow || window).SLEEVE_START;
+
     function applyChanges() {
         if (!getConfigEntry('active') || !isOnDb()) {
+            (window.unsafeWindow || window).SLEEVE_START = originalSleeveStart;
             return;
         }
-        makeAllSleevesDefault();
+        if (getConfigEntry('sleeveUrl')) {
+            (window.unsafeWindow || window).SLEEVE_START = '';
+        } else {
+            (window.unsafeWindow || window).SLEEVE_START = originalSleeveStart;
+        }
         hideProfilePictures();
         setBackgroundImage();
         setOkSound();
@@ -1797,7 +1787,7 @@
             return;
         }
         sendDuelChatMessages([thinkingText]);
-        (window.unsafeWindow || window).Send({"action":"Duel", "play":"Thinking"});
+        sendToDbSocket({action:'Duel', play:'Thinking'});
     }
 
     function sendOkText() {
@@ -1915,6 +1905,16 @@
                 data.html = true;
             }
             originalDuelChatPrint(data);
+        };
+
+        const originalInitPlayers = (window.unsafeWindow || window).initPlayers;
+        (window.unsafeWindow || window).initPlayers = (data) => {
+            const sleeveUrl = getConfigEntry('sleeveUrl');
+            if (getConfigEntry('active') && sleeveUrl) {
+                data.player1.sleeve = sleeveUrl;
+                data.player2.sleeve = sleeveUrl;
+            }
+            originalInitPlayers(data);
         };
     }
 

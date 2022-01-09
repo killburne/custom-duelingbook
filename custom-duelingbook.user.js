@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.19
+// @version      1.1.20
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -51,6 +51,11 @@
             },
             censorChat: {
                 label: 'Censor chat',
+                type: 'checkbox',
+                default: true
+            },
+            censorPrivateChat: {
+                label: 'Censor private chat (on hover you can see what was said)',
                 type: 'checkbox',
                 default: true
             },
@@ -1770,6 +1775,43 @@
         }
         return ret;
     }
+
+    function getCensoredEl(word, showTitle = false) {
+        const span = document.createElement('font');
+        if (showTitle) {
+            span.setAttribute('title', word);
+        }
+        span.innerText = '*'.repeat(word.length);
+        return span;
+    }
+
+    function censorTextNode(node, showTitle = false) {
+        const words = node.data.split(/\b/).map((word) => bannedWords.includes(word.toLowerCase()) ? getCensoredEl(word) : word).reverse();
+        if (words.findIndex(w => typeof w !== 'string') === -1) {
+            return;
+        }
+        let beforeStr = '';
+        let lastNode = node;
+        for (const word of words) {
+            if (typeof word === 'string') {
+                beforeStr = word + beforeStr;
+            } else {
+                if (beforeStr) {
+                    const text = document.createTextNode(beforeStr);
+                    lastNode.parentElement.insertBefore(text, lastNode);
+                    lastNode = text;
+                    beforeStr = '';
+                }
+                lastNode.parentElement.insertBefore(word, lastNode);
+                lastNode = word;
+            }
+        }
+        if (beforeStr) {
+            lastNode.parentElement.insertBefore(document.createTextNode(beforeStr), lastNode);
+        }
+        node.remove();
+    }
+
     function censorChat() {
         if (!getConfigEntry('active') || !getConfigEntry('censorChat')) {
             return;
@@ -1777,7 +1819,19 @@
         for (const msg of document.querySelectorAll('#duel .cout_txt .os-content > font')) {
             const els = getTextNodesInElementRecursive(msg);
             for (const el of els) {
-                el.data = el.data.split(/\b/).map((word) => bannedWords.includes(word.toLowerCase()) ? '*'.repeat(word.length) : word).join('');
+                censorTextNode(el);
+            }
+        }
+    }
+
+    function censorPrivateChat() {
+        if (!getConfigEntry('active') || !getConfigEntry('censorPrivateChat')) {
+            return;
+        }
+        for (const msg of document.querySelectorAll('#private_chat .cout_txt .os-content > font')) {
+            const els = getTextNodesInElementRecursive(msg);
+            for (const el of els) {
+                censorTextNode(el, true);
             }
         }
     }
@@ -1868,6 +1922,24 @@
         if (chatTarget) {
             chatObserver.observe(chatTarget, chatObserverConfig);
         }
+
+        const pChatObserverConfig = {childList: true, subtree: true};
+        const pChatTarget = document.querySelector('#private_chat .cout_txt');
+        let pChatApplying = false;
+        const pChatObserver = new MutationObserver((mutations) => {
+            if (pChatApplying) {
+                return;
+            }
+            pChatApplying = true;
+            pChatObserver.disconnect();
+            censorPrivateChat();
+            pChatApplying = false;
+            pChatObserver.observe(pChatTarget, pChatObserverConfig);
+        });
+        if (pChatTarget) {
+            pChatObserver.observe(pChatTarget, pChatObserverConfig);
+        }
+
         document.addEventListener('click', (e) => {
             if (e.target.id === 'think_btn') {
                 sendThinkingText();

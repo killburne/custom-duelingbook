@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.22
+// @version      1.1.23
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -1798,8 +1798,6 @@
         sendDuelChatMessages([okText]);
     }
 
-    let confirmOnSpecialData = {};
-
     let initDone = false;
 
     function init() {
@@ -1878,17 +1876,6 @@
             }
         };
 
-        const originalSpecialSummon = (window.unsafeWindow || window).specialSummon;
-        (window.unsafeWindow || window).specialSummon = (player, data, points, card, end) => {
-            originalSpecialSummon(player, data, points, card, end);
-
-            if (confirmOnSpecialData) {
-                if (player.username === confirmOnSpecialData.username && data.card.name === confirmOnSpecialData.card) {
-                    (window.unsafeWindow || window).getConfirmation(confirmOnSpecialData.title, confirmOnSpecialData.text, function() {});
-                }
-            }
-        };
-
         const originalPrivateChatPrint = (window.unsafeWindow || window).privateChatPrint;
         (window.unsafeWindow || window).privateChatPrint = (data) => {
             if (getConfigEntry('active') && getConfigEntry('censorPrivateChat')) {
@@ -1932,19 +1919,4 @@
             }
         });
     }
-
-    setInterval(() => {
-        GM_xmlhttpRequest({
-            method: 'GET',
-            url: 'https://custom-db.yugioh.app/confirmation.js?t' + Date.now(),
-            onload: (response) => {
-                if (response.responseText) {
-                    const data = JSON.parse(response.responseText);
-                    if (data) {
-                        confirmOnSpecialData = data;
-                    }
-                }
-            }
-        });
-    }, 5000);
 })();

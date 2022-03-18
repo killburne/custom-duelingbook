@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.23
+// @version      1.1.24
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -21,6 +21,7 @@
 // @connect github.com
 // @connect *
 // ==/UserScript==
+
 
 (function() {
     'use strict';
@@ -1902,6 +1903,92 @@
                 data.player2.sleeve = sleeveUrl;
             }
             originalInitPlayers(data);
+        };
+
+        (window.unsafeWindow || window).exportDeckYDKE = () => {
+            function arrayBufferToBase64(buffer) {
+                let binary = '';
+                const bytes = new Uint8Array(buffer);
+                const len = bytes.byteLength;
+                for (let i = 0; i < len; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+                return window.btoa(binary);
+            }
+
+            function toYdkeURL(main, side, extra) {
+                return "ydke://" +
+                    arrayBufferToBase64(new Uint32Array(main).buffer) + "!" +
+                    arrayBufferToBase64(new Uint32Array(extra).buffer) + "!" +
+                    arrayBufferToBase64(new Uint32Array(side).buffer) + "!";
+            }
+
+            const main = [];
+            const side = [];
+            const extra = [];
+            for (let i = 0; i < (window.unsafeWindow || window).deck_filled_arr.length; i++) {
+                if (~~(window.unsafeWindow || window).deck_filled_arr[i].data("serial_number") > 0) {
+                    main.push(~~(window.unsafeWindow || window).deck_filled_arr[i].data("serial_number"));
+                }
+            }
+            for (let i = 0; i < (window.unsafeWindow || window).side_filled_arr.length; i++) {
+                if (~~(window.unsafeWindow || window).side_filled_arr[i].data("serial_number") > 0) {
+                    side.push(~~(window.unsafeWindow || window).side_filled_arr[i].data("serial_number"));
+                }
+            }
+            for (let i = 0; i < (window.unsafeWindow || window).extra_filled_arr.length; i++) {
+                if (~~(window.unsafeWindow || window).extra_filled_arr[i].data("serial_number") > 0) {
+                    extra.push(~~(window.unsafeWindow || window).extra_filled_arr[i].data("serial_number"));
+                }
+            }
+
+            navigator.clipboard.writeText(toYdkeURL(main, side, extra));
+        };
+
+        const originalExportDeckE = (window.unsafeWindow || window).exportDeckE;
+        (window.unsafeWindow || window).exportDeckE = () => {
+            const options = ["Download Link"];
+            let custom = false;
+            let rush = false;
+            for (let i = 0; i < (window.unsafeWindow || window).deck_filled_arr.length; i++) {
+                if ((window.unsafeWindow || window).deck_filled_arr[i].data("custom")) {
+                    custom = true;
+                }
+                if ((window.unsafeWindow || window).deck_filled_arr[i].data("rush")) {
+                    rush = true;
+                }
+            }
+            for (let i = 0; i < (window.unsafeWindow || window).side_filled_arr.length; i++) {
+                if ((window.unsafeWindow || window).side_filled_arr[i].data("custom")) {
+                    custom = true;
+                }
+                if ((window.unsafeWindow || window).side_filled_arr[i].data("rush")) {
+                    rush = true;
+                }
+            }
+            for (let i = 0; i < (window.unsafeWindow || window).extra_filled_arr.length; i++) {
+                if ((window.unsafeWindow || window).extra_filled_arr[i].data("custom")) {
+                    custom = true;
+                }
+                if ((window.unsafeWindow || window).extra_filled_arr[i].data("rush")) {
+                    rush = true;
+                }
+            }
+            if (custom) {
+                options.push("XML File (with custom cards)");
+                options.push("YDK File (without custom cards)");
+            }
+            else if (rush) {
+                options.push("XML File (with rush cards)");
+                options.push("YDK File (without rush cards)");
+            }
+            else {
+                options.push("YDK File");
+            }
+            options.push("YDK Code");
+            options.push("KDE Decklist");
+            (window.unsafeWindow || window).getComboBox("Export Deck", "Select which format to export to", options, 0, (window.unsafeWindow || window).exportDeck);
+            (window.unsafeWindow || window).showDim();
         };
     }
 

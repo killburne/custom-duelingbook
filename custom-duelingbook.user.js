@@ -151,6 +151,17 @@
                 type: 'checkbox',
                 default: true
             },
+            hideMenuChat: {
+                label: 'Hide main menu feed',
+                type: 'checkbox',
+                default: false
+            },
+            mainPageMonsterUrl: {
+                label: 'Main menu image url',
+                type: 'text',
+                size: 300,
+                default: 'https://i.imgur.com/LWTLx2B.png'
+            },
             okSoundUrl: {
                 label: 'Ok sound url',
                 type: 'text',
@@ -1722,6 +1733,29 @@
             el.style.display = hideBackgroundBox ? 'none' : 'block';
         }
     }
+    function hideMenuChat() {
+        const mainPageMonsterUrl = getConfigEntry('mainPageMonsterUrl');
+        if (!mainPageMonsterUrl) {
+            return;
+        }
+        const hideMenuChat = getConfigEntry('hideMenuChat');
+        const el = document.getElementById('circle_content');
+        if (el) {
+            el.innerHTML = '<img style="max-height: 100%; width: auto; " src = "'+mainPageMonsterUrl+'">';
+        }
+        const en = document.getElementById('main_menu_circles');
+        if (en) {
+            en.style.display = hideMenuChat ? 'none' : 'block';
+        }
+        const ex = document.getElementById('status_cb');
+        if (ex) {
+            ex.style.display = hideMenuChat ? 'none' : 'block';
+        }
+        const ek = document.getElementById('post_status_btn');
+        if (ek) {
+            ek.style.display = hideMenuChat ? 'none' : 'block';
+        }
+    }
     function removeWatchersList() {
         const hideWatchersList = getConfigEntry('hideWatchersList');
         if (!hideWatchersList) {
@@ -1779,6 +1813,7 @@
         removeWatchersList();
         removeDuelNotes();
         hideBackgroundBox();
+        hideMenuChat();
         replaceThinkEmote();
     }
 

@@ -1741,7 +1741,7 @@
         const hideMenuChat = getConfigEntry('hideMenuChat');
         const el = document.getElementById('circle_content');
         if (el) {
-            el.innerHTML = '<img style="max-height: 100%; width: auto; " src = "'+mainPageMonsterUrl+'">';
+            el.innerHTML = '<img style="max-height: 100%; max-width: 100%; " src = "'+mainPageMonsterUrl+'">';
         }
         const en = document.getElementById('main_menu_circles');
         if (en) {

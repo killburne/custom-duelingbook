@@ -1735,13 +1735,16 @@
     }
     function hideMenuChat() {
         const mainPageMonsterUrl = getConfigEntry('mainPageMonsterUrl');
-        if (!mainPageMonsterUrl) {
-            return;
-        }
+
         const hideMenuChat = getConfigEntry('hideMenuChat');
         const el = document.getElementById('circle_content');
         if (el) {
-            el.innerHTML = '<img style="max-height: 100%; max-width: 100%; " src = "'+mainPageMonsterUrl+'">';
+            if (!mainPageMonsterUrl) {
+                el.style.display = hideMenuChat ? 'none' : 'block';
+        	}
+            else if(hideMenuChat == true){
+            		el.innerHTML = '<img style="max-height: 100%; max-width: 100%; " src = "'+mainPageMonsterUrl+'">';
+            }
         }
         const en = document.getElementById('main_menu_circles');
         if (en) {

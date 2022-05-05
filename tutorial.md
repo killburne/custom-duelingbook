@@ -74,8 +74,8 @@ Below is shown the remaining options not shown above and an expanded Macro menu.
 |Hide start page monster| Decide whether or not you want to see an image on the login/start menu.|
 |Start page monster url| The link to the image used for the start page monster (this is Nekroz of Brionac in default DB, and Chamber Dragonmaid by default using the extension). This image will always be 1370x1370 pixels in size, and thus will be resized to compensate if it is not.|
 |Hide background box| Enable/ disable the 4:3 background filter of DB (see image below).|
-|Hide main menu feed| Enable/ disables the DB menu feed (statuses, tournaments and videos/streams)|
-|Main menu image url| The image which is displayed in place of the Main Menu feed|
+|Hide main menu feed| Enable/ disables the DB menu feed (statuses, tournaments and videos/streams). Requires refresh to re-enable.|
+|Main menu image url| The image which is displayed in place of the Main Menu feed. Leave blank for no image tp be shown.|
 |Ok sound url| URL for sound played when either player "OK"s an action via the "OK" button.|
 |Ok image url| URL for image shown when either player "OK"s an action.|
 |Hide watchers list| Censors names shown in the watchers list of a duel|

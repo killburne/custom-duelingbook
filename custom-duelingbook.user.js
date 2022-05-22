@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.25
+// @version      1.1.26
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -27,7 +27,7 @@
     'use strict';
 
     function isOnDb() {
-       return document.getElementById('frames') && document.getElementById('already_logged_in') && document.getElementById('duel_room');
+       return document.getElementById('frames') && document.getElementById('duel') && document.getElementById('start');
     }
 
     function xmur3(str) {

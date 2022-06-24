@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.26
+// @version      1.1.27
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -210,6 +210,42 @@
                 label: 'Hotkey to open the ruling db link for the current card in the detail view',
                 type: 'hotkey',
                 default: ['F2']
+            },
+            fieldZoneImageUrl: {
+                label: 'Field zone image url',
+                type: 'text',
+                size: 300,
+                default: 'https://custom-db.yugioh.app/assets/field_zones2.svg'
+            },
+            phaseButtonBackgroundImageUrl: {
+                label: 'Phase Button Background Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://custom-db.yugioh.app/assets/button_bg.png'
+            },
+            phaseButtonRedImageUrl: {
+                label: 'Phase Button Red Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://custom-db.yugioh.app/assets/button_red.png'
+            },
+            phaseButtonRedActiveImageUrl: {
+                label: 'Phase Button Red Active Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://custom-db.yugioh.app/assets/button_red_lit.png'
+            },
+            phaseButtonBlueImageUrl: {
+                label: 'Phase Button Blue Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://custom-db.yugioh.app/assets/button_blue.png'
+            },
+            phaseButtonBlueActiveImageUrl: {
+                label: 'Phase Button Blue Active Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://custom-db.yugioh.app/assets/button_blue_lit.png'
             }
         },
         types: {
@@ -1743,7 +1779,9 @@
                 el.style.display = hideMenuChat ? 'none' : 'block';
             }
             else if(hideMenuChat == true){
-                el.innerHTML = `<img style="max-height: 100%; max-width: 100%; " src="${mainPageMonsterUrl}">`;
+                if (!document.querySelector('#circle_content .main-page-monster')) {
+                    el.innerHTML = `<img style="max-height: 100%; max-width: 100%; " class="main-page-monster" src="${mainPageMonsterUrl}">`;
+                }
             }
         }
         const en = document.getElementById('main_menu_circles');
@@ -1818,6 +1856,8 @@
         hideBackgroundBox();
         hideMenuChat();
         replaceThinkEmote();
+        setFieldZoneImageUrl();
+        setPhaseButtons();
     }
 
     function sendThinkingText() {
@@ -1835,6 +1875,56 @@
             return;
         }
         sendDuelChatMessages([okText]);
+    }
+
+    function setFieldZoneImageUrl() {
+        const el = document.getElementById('field_zones2');
+        if (!el) {
+            return;
+        }
+        const fieldZoneImageUrl = getConfigEntry('fieldZoneImageUrl');
+        if (!fieldZoneImageUrl) {
+            if (el.getAttribute('data-orig-image') && el.getAttribute('src') !== el.getAttribute('data-orig-image')) {
+                el.setAttribute('src', el.getAttribute('data-orig-image'));
+            }
+            return;
+        }
+        if (el.getAttribute('src') !== fieldZoneImageUrl) {
+            if (!el.getAttribute('data-orig-image')) {
+                el.setAttribute('data-orig-image', el.getAttribute('src'));
+            }
+            el.setAttribute('src', fieldZoneImageUrl);
+        }
+    }
+
+    function setPhaseButtons() {
+        const phases = ['dp', 'sp', 'm1', 'bp', 'm2', 'ep'];
+        const phaseButtonBackgroundImageUrl = getConfigEntry('phaseButtonBackgroundImageUrl');
+        const phaseButtonRedImageUrl = getConfigEntry('phaseButtonRedImageUrl');
+        const phaseButtonRedActiveImageUrl = getConfigEntry('phaseButtonRedActiveImageUrl');
+        const phaseButtonBlueImageUrl = getConfigEntry('phaseButtonBlueImageUrl');
+        const phaseButtonBlueActiveImageUrl = getConfigEntry('phaseButtonBlueActiveImageUrl');
+
+        const updatePhaseButton = (id) => {
+            if (phaseButtonBackgroundImageUrl) {
+                $(`#${id} .background`).attr('src', phaseButtonBackgroundImageUrl);
+            }
+            if (phaseButtonBlueImageUrl) {
+                $(`#${id} .phase_dark_blue`).attr('src', phaseButtonBlueImageUrl);
+            }
+            if (phaseButtonRedImageUrl) {
+                $(`#${id} .phase_dark_red`).attr('src', phaseButtonRedImageUrl);
+            }
+            if (phaseButtonBlueImageUrl) {
+                $(`#${id} .phase_blue`).attr('src', phaseButtonBlueImageUrl);
+            }
+            if (phaseButtonRedActiveImageUrl) {
+                $(`#${id} .phase_red`).attr('src', phaseButtonRedActiveImageUrl);
+            }
+        };
+        for (const phase of phases) {
+            updatePhaseButton(phase);
+        }
     }
 
     let initDone = false;

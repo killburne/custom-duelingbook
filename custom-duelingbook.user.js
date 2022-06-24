@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.27
+// @version      1.1.28
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -1915,8 +1915,8 @@
             if (phaseButtonRedImageUrl) {
                 $(`#${id} .phase_dark_red`).attr('src', phaseButtonRedImageUrl);
             }
-            if (phaseButtonBlueImageUrl) {
-                $(`#${id} .phase_blue`).attr('src', phaseButtonBlueImageUrl);
+            if (phaseButtonBlueActiveImageUrl) {
+                $(`#${id} .phase_blue`).attr('src', phaseButtonBlueActiveImageUrl);
             }
             if (phaseButtonRedActiveImageUrl) {
                 $(`#${id} .phase_red`).attr('src', phaseButtonRedActiveImageUrl);

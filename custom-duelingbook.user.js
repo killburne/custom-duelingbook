@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.31
+// @version      1.1.32
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -359,6 +359,11 @@
                 label: 'Hide Field Spell Background',
                 type: 'checkbox',
                 default: false
+            },
+            darkMode: {
+                label: 'Dark Mode',
+                type: 'checkbox',
+                default: true
             },
         },
         types: {
@@ -2001,6 +2006,7 @@
         setPhaseButtons();
         setTurnButton();
         setTokenImages();
+        setDarkMode();
 
         for (const btn of overrideButtonImages) {
             (window.unsafeWindow || window).removeButton($(btn.selector));
@@ -2134,6 +2140,33 @@
         }
     }
 
+    function setDarkMode() {
+        const id = 'darkModeChatCss';
+        const el = document.getElementById(id);
+        if (el) {
+            if (!getConfigEntry('darkMode')) {
+                el.remove();
+            }
+            return;
+        }
+        if (!getConfigEntry('darkMode')) {
+            return;
+        }
+        const style = document.createElement('style');
+        style.id = id;
+        style.innerText = `
+        .cout_txt { background-color: #18181b; color: #efeff1; border: 0; line-break: anywhere; }
+        .cout_txt .chat-line { padding: 2px }
+        .cout_txt .chat-line:nth-child(even) { background: rgba(255, 255, 255, 0.05) }
+        .cout_txt .chat-line:hover { background: rgba(255, 255, 255, 0.2) }
+        input, .textinput, .chat_background, #watchers, #watchers .users, #preview_txt { background-color: #18181b !important; color: #efeff1 !important; }
+        .cell.cell1 { background-image: url('https://custom-db.yugioh.app/assets/cell4.svg'); color: #efeff1 !important; }
+        .cell.cell1.selected { background-image: url('https://custom-db.yugioh.app/assets/cell_sel.svg'); color: #efeff1 !important; }
+        `;
+        document.body.appendChild(style);
+    }
+
+
     let initDone = false;
 
     function init() {
@@ -2199,8 +2232,98 @@
                 data.message = censorText((window.unsafeWindow || window).escapeHTMLWithLinks(data.message), true);
                 data.html = true;
             }
-            originalPrivateChatPrint(data);
+            let cell;
+            let from;
+            let fromMe = false;
+            let otherPerson = data.username;
+            if ((window.unsafeWindow || window).username != data.receiver) {
+                otherPerson = data.receiver;
+                from = (window.unsafeWindow || window).username;
+                fromMe = true;
+                (window.unsafeWindow || window).playSound(ChatOutbound);
+            }
+            else {
+                from = otherPerson;
+                (window.unsafeWindow || window).playSound(ChatInbound);
+            }
+            let color = '#0000FF';
+            if (data.color) {
+                color = '#' + data.color;
+            }
+            if (fromMe && color == '#0000FF') {
+                color = '#FF0000';
+            }
+            let message = data.message;
+
+            if (getConfigEntry('darkMode') && color == '#0000FF') {
+                color = '#2aabf9';
+            }
+
+            if (!data.html) {
+                message = (window.unsafeWindow || window).escapeHTMLWithLinks(message);
+            }
+            const content = getChatLineHtml(from, color, message);
+
+            const users = (window.unsafeWindow || window).private_chat.find('.cell');
+            for (let i = 0; i < users.length; i++) {
+                if (users.eq(i).text() == otherPerson) {
+                    cell = users.eq(i);
+                    break;
+                }
+            }
+            if (!cell) {
+                cell = new (window.unsafeWindow || window).PrivateChatCell(from);
+            }
+            if ((window.unsafeWindow || window).private_chat.find('.cell.selected').text() == otherPerson) {
+                //console.log('appending. content = ' + content);
+                (window.unsafeWindow || window).savePrivateVSP();
+                (window.unsafeWindow || window).private_chat.find('.cout_txt').append(content);
+                cell.data('cout', (window.unsafeWindow || window).private_chat.find('.cout_txt').html());
+                (window.unsafeWindow || window).restorePrivateVSP();
+            }
+            if (!fromMe && !(window.unsafeWindow || window).private_chat.is(':visible') || (window.unsafeWindow || window).private_chat.find('.cell.selected').text() != otherPerson) {
+                cell.data('new_msg', true);
+                if ((window.unsafeWindow || window).private_chat.find('.cell.selected').text() != otherPerson) {
+                    cell.data('cout', cell.data('cout') + content);
+                }
+                cell.addClass('glowing');
+                (window.unsafeWindow || window).determineAnimate();
+            }
         };
+
+        const originalPrivateOnlineE = (window.unsafeWindow || window).privateOnlineE;
+        (window.unsafeWindow || window).privateOnlineE = (data) => {
+            for (let i = 0; i < (window.unsafeWindow || window).private_chat.find('.cell').length; i++) {
+                if (data.username == (window.unsafeWindow || window).private_chat.find('.cell').eq(i).data('username')) {
+                    var cell = (window.unsafeWindow || window).private_chat.find('.cell').eq(i);
+                    if (cell.hasClass('selected')) {
+                        (window.unsafeWindow || window).private_chat.find('.cout_txt').append(getChatLineHtml(data.username + ' has logged in', getConfigEntry('darkMode') ? '#ffffff' : '#000000'));
+                        cell.data('cout', (window.unsafeWindow || window).private_chat.find('.cout_txt').html())
+                        (window.unsafeWindow || window).private_chat.find('.cout_txt').scrollTop(cell.data('vsp')); // doesn't seem right
+                        break;
+
+                    }
+                    cell.data('cout', cell.data('cout') + getChatLineHtml(data.username + ' has logged in', getConfigEntry('darkMode') ? '#ffffff' : '#000000'))
+                }
+            }
+        }
+
+        const originalPrivateOfflineE = (window.unsafeWindow || window).privateOfflineE;
+        (window.unsafeWindow || window).privateOfflineE = (data) => {
+            for (let i = 0; i < (window.unsafeWindow || window).private_chat.find('.cell').length; i++) {
+                if (data.username == (window.unsafeWindow || window).private_chat.find('.cell').eq(i).data('username')) {
+                    var cell = (window.unsafeWindow || window).private_chat.find('.cell').eq(i);
+                    if (cell.hasClass('selected')) {
+                        (window.unsafeWindow || window).private_chat.find('.cout_txt').append(getChatLineHtml(data.username + ' has logged out', getConfigEntry('darkMode') ? '#ffffff' : '#000000'));
+                        cell.data('cout', (window.unsafeWindow || window).private_chat.find('.cout_txt').html())
+                        (window.unsafeWindow || window).private_chat.find('.cout_txt').scrollTop(cell.data('vsp')); // doesn't seem right
+                        break;
+
+                    }
+                    cell.data('cout', cell.data('cout') + getChatLineHtml(data.username + ' has logged out', getConfigEntry('darkMode') ? '#ffffff' : '#000000'))
+                }
+            }
+        }
 
         const originalDuelChatPrint = (window.unsafeWindow || window).duelChatPrint;
         (window.unsafeWindow || window).duelChatPrint = (data) => {
@@ -2208,7 +2331,99 @@
                 data.message = censorText((window.unsafeWindow || window).escapeHTMLWithLinks(data.message));
                 data.html = true;
             }
-            originalDuelChatPrint(data);
+
+            (window.unsafeWindow || window).saveDuelVSP();
+            let color = '#0000FF';
+            if (data.color) {
+                color = "#" + data.color;
+            }
+            if ((window.unsafeWindow || window).player1.username == data.username || (window.unsafeWindow || window).player3 && (window.unsafeWindow || window).player3.username == data.username) {
+                if (color == '#0000FF') {
+                    color = '#FF0000';
+                }
+            }
+
+            if (getConfigEntry('darkMode') && color == '#0000FF') {
+                color = '#2aabf9';
+            }
+
+            if (!data.html) {
+                data.message = (window.unsafeWindow || window).escapeHTMLWithLinks(data.message);
+            }
+            if ((window.unsafeWindow || window).conceal) {
+                switch(data.username) {
+                    case (window.unsafeWindow || window).player1.username:
+                        data.username = 'Red';
+                        break;
+                    case (window.unsafeWindow || window).player2.username:
+                        data.username = 'Blue';
+                        break;
+                    case (window.unsafeWindow || window).player3.username:
+                    case (window.unsafeWindow || window).player4.username:
+                        data.username = 'Partner';
+                        break;
+                }
+                switch(data.color) {
+                    case '009900':
+                    case '707070':
+                    case 'CC9900':
+                    case '660099':
+                        data.username = 'Admin';
+                        break;
+                }
+            }
+            else if ((window.unsafeWindow || window).streaming) {
+                data.username = (window.unsafeWindow || window).censor(data.username);
+                data.message = (window.unsafeWindow || window).censor(data.message);
+            }
+
+            $('#duel .cout_txt').append(getChatLineHtml(data.username, color, data.message));
+            (window.unsafeWindow || window).restoreDuelVSP();
+        };
+
+        function getChatLineHtml(username, userColor, escapedMessage) {
+            const hasMessage = typeof escapedMessage === 'string';
+            let message = `<b><font color="${userColor}">${(window.unsafeWindow || window).escapeHTML(username)}${ hasMessage ? ': ' : '' }</font></b>`;
+            if (hasMessage) {
+                message += `<font>${escapedMessage}</font>`;
+            }
+            return `<div class="chat-line" style="position: initial;">${message}</div>`;
+        }
+
+        const originalDuelChatLoaded = (window.unsafeWindow || window).duelChatLoaded;
+        (window.unsafeWindow || window).duelChatLoaded = (data) => {
+            let str = "";
+            if (data.messages.length > 0) {
+                $('#duel .cout_txt').html('');
+                for (let i = 0; i < data.messages.length; i++) {
+                    let color = "0000FF";
+                    if (data.messages[i].color) {
+                        color = data.messages[i].color;
+                    }
+                    if (color == "0000FF" && (window.unsafeWindow || window).isPlayer1(data.messages[i].username)) {
+                        color = "FF0000";
+                    }
+
+                    if (streaming) {
+                        data.messages[i].username = (window.unsafeWindow || window).censor(data.messages[i].username);
+                    }
+
+                    str += getChatLineHtml(data.messages[i].username, color, (window.unsafeWindow || window).escapeHTMLWithLinks(data.messages[i].message));
+                }
+            }
+            $('#duel .cout_txt').html(str);
+            $('#duel .cout_txt').scrollTop(Infinity);
+            $('#duel .refresh_btn').hide();
+        };
+
+        const originalAddLine = (window.unsafeWindow || window).addLine;
+        (window.unsafeWindow || window).addLine = (str) => {
+            if ((window.unsafeWindow || window).conceal) {
+                return;
+            }
+            (window.unsafeWindow || window).saveDuelVSP();
+            $('#duel .cout_txt').append(getChatLineHtml(str, getConfigEntry('darkMode') ? '#ffffff' : '#000000'));
+            (window.unsafeWindow || window).restoreDuelVSP();
         };
 
         const originalInitPlayers = (window.unsafeWindow || window).initPlayers;

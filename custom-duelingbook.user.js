@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.32
+// @version      1.1.33
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -2155,7 +2155,7 @@
         const style = document.createElement('style');
         style.id = id;
         style.innerText = `
-        .cout_txt { background-color: #18181b; color: #efeff1; border: 0; line-break: anywhere; }
+        .cout_txt { background-color: #18181b; color: #efeff1; border: 0; }
         .cout_txt .chat-line { padding: 2px }
         .cout_txt .chat-line:nth-child(even) { background: rgba(255, 255, 255, 0.05) }
         .cout_txt .chat-line:hover { background: rgba(255, 255, 255, 0.2) }

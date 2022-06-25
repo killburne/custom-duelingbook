@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.33
+// @version      1.1.34
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -362,6 +362,11 @@
             },
             darkMode: {
                 label: 'Dark Mode',
+                type: 'checkbox',
+                default: true
+            },
+            hideChooseZones: {
+                label: 'Hide Choose Zones Checkbox',
                 type: 'checkbox',
                 default: true
             },
@@ -2007,6 +2012,7 @@
         setTurnButton();
         setTokenImages();
         setDarkMode();
+        setChooseZonesButton();
 
         for (const btn of overrideButtonImages) {
             (window.unsafeWindow || window).removeButton($(btn.selector));
@@ -2159,11 +2165,20 @@
         .cout_txt .chat-line { padding: 2px }
         .cout_txt .chat-line:nth-child(even) { background: rgba(255, 255, 255, 0.05) }
         .cout_txt .chat-line:hover { background: rgba(255, 255, 255, 0.2) }
-        input, .textinput, .chat_background, #watchers, #watchers .users, #preview_txt { background-color: #18181b !important; color: #efeff1 !important; }
+        input, .textinput, .profile_txt, .chat_background, #watchers, #watchers .users, #preview_txt { background-color: #18181b !important; color: #efeff1 !important; }
         .cell.cell1 { background-image: url('https://custom-db.yugioh.app/assets/cell4.svg'); color: #efeff1 !important; }
         .cell.cell1.selected { background-image: url('https://custom-db.yugioh.app/assets/cell_sel.svg'); color: #efeff1 !important; }
         `;
         document.body.appendChild(style);
+    }
+
+    function setChooseZonesButton() {
+        const hide = getConfigEntry('hideChooseZones');
+        if (hide) {
+            $('#choose_zones').hide();
+        } else {
+            $('#choose_zones').show();
+        }
     }
 
 

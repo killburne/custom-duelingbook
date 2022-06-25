@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.30
+// @version      1.1.31
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -360,11 +360,6 @@
                 type: 'checkbox',
                 default: false
             },
-            useExternalCardImagesPreview: {
-                label: 'Use External Card Images For Preview',
-                type: 'checkbox',
-                default: false
-            }
         },
         types: {
             hotkey: {
@@ -2391,34 +2386,6 @@
                 return;
             }
             originalSetFieldSpellPic(player, card);
-        };
-
-        const previewElementId = 'customPreviewImage';
-        const originalPreviewFront = (window.unsafeWindow || window).previewFront;
-        (window.unsafeWindow || window).previewFront = (cardfront) => {
-            originalPreviewFront(cardfront);
-            if (!getConfigEntry('useExternalCardImagesPreview')) {
-                $(`#${previewElementId}`).hide();
-                return;
-            }
-            const passcode = parseInt(cardfront.data('passcode'));
-            if (!passcode) {
-                return;
-            }
-            const imageUrl = `https://card.yugioh-api.com/${passcode}/image`;
-            const el = document.getElementById(previewElementId);
-            if (el) {
-                $(`#${previewElementId}`).show();
-                el.setAttribute('src', imageUrl);
-                return;
-            }
-            $(`<img id="${previewElementId}" src="${imageUrl}" style="position: absolute; left: 3px; top: 7px; width: 200px; z-index: 1;">`).insertAfter($('#preview'));
-        };
-
-        const originalPreviewHide = (window.unsafeWindow || window).preview.hide;
-        (window.unsafeWindow || window).preview.hide = () => {
-            originalPreviewHide.call((window.unsafeWindow || window).preview);
-            $(`#${previewElementId}`).hide();
         };
 
         const config = {attributes: true, childList: true, characterData: true, subtree: true};

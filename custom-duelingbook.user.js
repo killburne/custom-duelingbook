@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.28
+// @version      1.1.29
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -211,6 +211,12 @@
                 type: 'hotkey',
                 default: ['F2']
             },
+            deckZoneImageUrl: {
+                label: 'Deck zone image url',
+                type: 'text',
+                size: 300,
+                default: 'https://custom-db.yugioh.app/assets/field_decks2.svg'
+            },
             fieldZoneImageUrl: {
                 label: 'Field zone image url',
                 type: 'text',
@@ -246,7 +252,114 @@
                 type: 'text',
                 size: 300,
                 default: 'https://custom-db.yugioh.app/assets/button_blue_lit.png'
-            }
+            },
+            turnButtonBackgroundImageUrl: {
+                label: 'Turn Button Background Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://custom-db.yugioh.app/assets/turn_background.png'
+            },
+            turnButtonRedImageUrl: {
+                label: 'Turn Button Red Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://custom-db.yugioh.app/assets/turn_red.png'
+            },
+            turnButtonBlueImageUrl: {
+                label: 'Turn Button Blue Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://custom-db.yugioh.app/assets/turn_blue.png'
+            },
+            turnButtonYellowImageUrl: {
+                label: 'Turn Button Yellow Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://custom-db.yugioh.app/assets/turn_yellow.png'
+            },
+            turnButtonGreenImageUrl: {
+                label: 'Turn Button Green Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://custom-db.yugioh.app/assets/turn_green.png'
+            },
+            turnButtonGlowImageUrl: {
+                label: 'Turn Button Glow Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/svg/white_glow.svg'
+            },
+            dieButtonImageUrl: {
+                label: 'Die Button Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/svg/die_btn_up.svg'
+            },
+            dieButtonHoverImageUrl: {
+                label: 'Die Button Hover Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/svg/die_btn_over.svg'
+            },
+            dieButtonDownImageUrl: {
+                label: 'Die Button Down Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/svg/die_btn_down.svg'
+            },
+            coinButtonImageUrl: {
+                label: 'Coin Button Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/svg/coin_btn_up.svg'
+            },
+            coinButtonHoverImageUrl: {
+                label: 'Coin Button Hover Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/svg/coin_btn_over.svg'
+            },
+            coinButtonDownImageUrl: {
+                label: 'Coin Button Down Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/svg/coin_btn_down.svg'
+            },
+            tokenButtonImageUrl: {
+                label: 'Token Button Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/svg/token_btn_up.svg'
+            },
+            tokenButtonHoverImageUrl: {
+                label: 'Token Button Hover Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/svg/token_btn_over.svg'
+            },
+            tokenButtonDownImageUrl: {
+                label: 'Token Button Down Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/svg/token_btn_down.svg'
+            },
+            counterButtonImageUrl: {
+                label: 'Counter Button Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/svg/counter.svg'
+            },
+            counterButtonGlowImageUrl: {
+                label: 'Counter Button Glow Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/svg/counter_glow.svg'
+            },
+            hideFieldSpellBackground: {
+                label: 'Hide Field Spell Background',
+                type: 'checkbox',
+                default: false
+            },
         },
         types: {
             hotkey: {
@@ -323,6 +436,33 @@
             }
         }
     });
+
+    const overrideButtonImages = [
+        {
+            name: 'die_btn',
+            selector: '#die_btn',
+            down: 'dieButtonDownImageUrl',
+            hover: 'dieButtonHoverImageUrl',
+            up: 'dieButtonImageUrl',
+            cb: (window.unsafeWindow || window).dieE
+        },
+        {
+            name: 'coin_btn',
+            selector: '#coin_btn',
+            down: 'coinButtonDownImageUrl',
+            hover: 'coinButtonHoverImageUrl',
+            up: 'coinButtonImageUrl',
+            cb: (window.unsafeWindow || window).coinE
+        },
+        {
+            name: 'token_btn',
+            selector: '#duel .token_btn',
+            down: 'tokenButtonDownImageUrl',
+            hover: 'tokenButtonHoverImageUrl',
+            up: 'tokenButtonImageUrl',
+            cb: (window.unsafeWindow || window).tokenE
+        },
+    ];
 
     function getConfigEntry(key) {
         return GM_config.get(key);
@@ -1856,8 +1996,16 @@
         hideBackgroundBox();
         hideMenuChat();
         replaceThinkEmote();
+        setDeckZoneImageUrl();
         setFieldZoneImageUrl();
         setPhaseButtons();
+        setTurnButton();
+        setTokenImages();
+
+        for (const btn of overrideButtonImages) {
+            (window.unsafeWindow || window).removeButton($(btn.selector));
+            (window.unsafeWindow || window).addButton($(btn.selector), btn.cb);
+        }
     }
 
     function sendThinkingText() {
@@ -1897,6 +2045,26 @@
         }
     }
 
+    function setDeckZoneImageUrl() {
+        const el = document.getElementById('field_decks2');
+        if (!el) {
+            return;
+        }
+        const deckZoneImageUrl = getConfigEntry('deckZoneImageUrl');
+        if (!deckZoneImageUrl) {
+            if (el.getAttribute('data-orig-image') && el.getAttribute('src') !== el.getAttribute('data-orig-image')) {
+                el.setAttribute('src', el.getAttribute('data-orig-image'));
+            }
+            return;
+        }
+        if (el.getAttribute('src') !== deckZoneImageUrl) {
+            if (!el.getAttribute('data-orig-image')) {
+                el.setAttribute('data-orig-image', el.getAttribute('src'));
+            }
+            el.setAttribute('src', deckZoneImageUrl);
+        }
+    }
+
     function setPhaseButtons() {
         const phases = ['dp', 'sp', 'm1', 'bp', 'm2', 'ep'];
         const phaseButtonBackgroundImageUrl = getConfigEntry('phaseButtonBackgroundImageUrl');
@@ -1927,6 +2095,45 @@
         }
     }
 
+    function setTurnButton() {
+        const turnButtonBackgroundImageUrl = getConfigEntry('turnButtonBackgroundImageUrl');
+        const turnButtonRedImageUrl = getConfigEntry('turnButtonRedImageUrl');
+        const turnButtonGreenImageUrl = getConfigEntry('turnButtonGreenImageUrl');
+        const turnButtonBlueImageUrl = getConfigEntry('turnButtonBlueImageUrl');
+        const turnButtonYellowImageUrl = getConfigEntry('turnButtonYellowImageUrl');
+        const turnButtonGlowImageUrl = getConfigEntry('turnButtonGlowImageUrl');
+        if (turnButtonBackgroundImageUrl) {
+            $('#turn .background, #start_turn .background, #end_turn .background').attr('src', turnButtonBackgroundImageUrl);
+        }
+        if (turnButtonGreenImageUrl) {
+            $('#turn .green, #start_turn .green, #end_turn .green').attr('src', turnButtonGreenImageUrl);
+        }
+        if (turnButtonRedImageUrl) {
+            $('#turn .red, #start_turn .red, #end_turn .red').attr('src', turnButtonRedImageUrl);
+        }
+        if (turnButtonBlueImageUrl) {
+            $('#turn .blue, #start_turn .blue, #end_turn .blue').attr('src', turnButtonBlueImageUrl);
+        }
+        if (turnButtonYellowImageUrl) {
+            $('#turn .yellow, #start_turn .yellow, #end_turn .yellow').attr('src', turnButtonYellowImageUrl);
+        }
+        if (turnButtonGlowImageUrl) {
+            $('#turn .white_glow, #start_turn .white_glow, #end_turn .white_glow').attr('src', turnButtonGlowImageUrl);
+        }
+
+    }
+
+    function setTokenImages() {
+        const counterButtonImageUrl = getConfigEntry('counterButtonImageUrl');
+        if (counterButtonImageUrl) {
+            $('.counter img.background').attr('src', counterButtonImageUrl);
+        }
+        const counterButtonGlowImageUrl = getConfigEntry('counterButtonGlowImageUrl');
+        if (counterButtonGlowImageUrl) {
+            $('.counter img.glow').attr('src', counterButtonGlowImageUrl);
+        }
+    }
+
     let initDone = false;
 
     function init() {
@@ -1941,25 +2148,6 @@
 
         (window.unsafeWindow || window).restoreDuelVSP = () => {
             $('#duel .cout_txt').scrollTop($('#duel .cout_txt').scrollMax());
-        }
-
-        const config = {attributes: true, childList: true, characterData: true, subtree: true};
-        const target = document.querySelector('body');
-        let applying = false;
-        const observer = new MutationObserver((mutations) => {
-            if (applying) {
-                return;
-            }
-            applying = true;
-            observer.disconnect();
-            applyChanges();
-            setTimeout(() => {
-                applying = false;
-                observer.observe(target, config);
-            }, 300);
-        });
-        if (target) {
-            observer.observe(target, config);
         }
 
         document.addEventListener('click', (e) => {
@@ -2072,6 +2260,78 @@
 
             navigator.clipboard.writeText(toYdkeURL(main, side, extra));
         };
+        const origAddButton = (window.unsafeWindow || window).addButton;
+        (window.unsafeWindow || window).addButton = (btn, cb) => {
+            var name = btn.attr('class');
+            if (!name) {
+                name = btn.attr('id');
+            }
+            else {
+                if (name.indexOf(' ') >= 0) {
+                    name = name.substring(0, name.indexOf(' '));
+                }
+                if (name.indexOf('btn') < 0) {
+                    name = btn.attr('id');
+                }
+            }
+            const buttonConfig = overrideButtonImages.find(b => b.name === name);
+            if (buttonConfig) {
+                var img = btn.find('img').last();
+                btn.css('cursor', 'pointer');
+                var path = (window.unsafeWindow || window).IMAGES_START + 'svg/';
+                var ext = '.svg';
+                var src = img.attr('src');
+                if (img.attr('data-src')) {
+                    src = img.attr('data-src');
+                }
+                if (img.length > 0 && src.indexOf('.svg') < 0) {
+                    path = (window.unsafeWindow || window).IMAGES_START;
+                    ext = src.substring(src.length - 4, src.length);
+                }
+                if (img.length > 0 && src.indexOf('_up.') >= 0) {
+                    const upImage = getConfigEntry(buttonConfig.up);
+                    const downImage = getConfigEntry(buttonConfig.down);
+                    const hoverImage = getConfigEntry(buttonConfig.hover);
+                    if (upImage) {
+                        img.attr('data-src', upImage);
+                        img.attr('src', upImage);
+                    }
+                    btn.on('touchend mouseout', () => {
+                        if (upImage) {
+                            img.attr('src', upImage);
+                        } else {
+                            img.attr('src', path + name + '_up' + ext);
+                        }
+                    });
+                    btn.on('touchstart mouseenter', () => {
+                        if (hoverImage) {
+                            img.attr('src', hoverImage);
+                        } else {
+                            img.attr('src', path + name + '_over' + ext);
+                        }
+                    });
+                    btn.on('touchend mouseup', () => {
+                        if (hoverImage) {
+                            img.attr('src', hoverImage);
+                        } else {
+                            img.attr('src', path + name + '_over' + ext);
+                        }
+                    });
+                    btn.on('touchstart mousedown', () =>{
+                        if (downImage) {
+                            img.attr('src', downImage);
+                        } else {
+                            img.attr('src', path + name + '_down' + ext);
+                        }
+                    });
+                }
+                if (cb) {
+                    btn.click(cb);
+                }
+            } else {
+                origAddButton(btn, cb);
+            }
+        };
 
         const originalExportDeckE = (window.unsafeWindow || window).exportDeckE;
         (window.unsafeWindow || window).exportDeckE = () => {
@@ -2118,6 +2378,34 @@
             (window.unsafeWindow || window).getComboBox("Export Deck", "Select which format to export to", options, 0, (window.unsafeWindow || window).exportDeck);
             (window.unsafeWindow || window).showDim();
         };
+
+        const originalSetFieldSpellPic = (window.unsafeWindow || window).setFieldSpellPic;
+        (window.unsafeWindow || window).setFieldSpellPic = (player, card) => {
+            if (getConfigEntry('hideFieldSpellBackground')) {
+                (window.unsafeWindow || window).removeFieldSpellPic();
+                return;
+            }
+            originalSetFieldSpellPic(player, card);
+        };
+
+        const config = {attributes: true, childList: true, characterData: true, subtree: true};
+        const target = document.querySelector('body');
+        let applying = false;
+        const observer = new MutationObserver((mutations) => {
+            if (applying) {
+                return;
+            }
+            applying = true;
+            observer.disconnect();
+            applyChanges();
+            setTimeout(() => {
+                applying = false;
+                observer.observe(target, config);
+            }, 300);
+        });
+        if (target) {
+            observer.observe(target, config);
+        }
     }
 
     addSettingsButton();

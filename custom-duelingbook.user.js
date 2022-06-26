@@ -376,6 +376,11 @@
                 type: 'checkbox',
                 default: true
             },
+            darkModeCards: {
+                label: 'Dark Mode For Cards (Everything is XYZ)',
+                type: 'checkbox',
+                default: false
+            },
         },
         types: {
             hotkey: {
@@ -2197,9 +2202,11 @@
         input, .textinput, .profile_txt, .chat_background, #watchers, #watchers .users, #preview_txt { background-color: #18181b !important; color: #efeff1 !important; }
         .cell.cell1 { background-image: url('https://custom-db.yugioh.app/assets/cell4.svg'); color: #efeff1 !important; }
         .cell.cell1.selected { background-image: url('https://custom-db.yugioh.app/assets/cell_sel.svg'); color: #efeff1 !important; }
-        select, .combobox, .button, .checkbox, .radiobutton { background: #18181b !important; color: #efeff1 !important; }
+        #card_menu .card_menu_txt, select, .combobox, .button, .checkbox, .radiobutton { background: #18181b !important; color: #efeff1 !important; }
         .checkbox, .radiobutton { border: 1px solid #979797; }
         .radiobutton { border-radius: 7px; }
+        #card_menu .card_menu_txt:hover { background: #979797 !important; }
+        #view .content { background: #18181b; }
         `;
         document.body.appendChild(style);
         adjustElementsForDarkmode();
@@ -2211,7 +2218,6 @@
         const checkboxCheckImageUrl = 'https://custom-db.yugioh.app/assets/check.svg';
 
         const comboboxArrows = document.querySelectorAll('.combobox .combobox_arrow img');
-        console.log(comboboxArrows);
         for (const comboboxArrow of comboboxArrows) {
             if (comboboxArrow.getAttribute('src') !== comboboxArrowImageUrl) {
                 comboboxArrow.setAttribute('src', comboboxArrowImageUrl);
@@ -2692,6 +2698,33 @@
             }
             adjustElementsForDarkmode();
         };
+
+        const originalCardFront = (window.unsafeWindow || window).CardFront;
+        (window.unsafeWindow || window).CardFront = function CardFront() {
+            const card = originalCardFront();
+            const originalInitialize = card.initialize;
+            card.initialize = (...args) => {
+                const ret = originalInitialize(...args);
+                if (!getConfigEntry('darkModeCards')) {
+                    return ret;
+                }
+
+                card.find('.card_color').attr('src', 'https://images.duelingbook.com/card/xyz_front2.jpg');
+                card.find('.name_txt').css('color', 'white');
+
+                return ret;
+            };
+            return card;
+        };
+        const preview = (window.unsafeWindow || window).newCardFront();
+        preview.attr('id', 'preview');
+        preview.css('transform', 'scale(0.2460024600246, 0.245991561181435)');
+        preview.data('name', 'preview');
+        preview.find('.name_txt').addClass('selectable');
+        preview.find('.name2_txt').addClass('selectable');
+        preview.hide();
+        (window.unsafeWindow || window).preview = preview;
+
 
         const config = {attributes: true, childList: true, characterData: true, subtree: true};
         const target = document.querySelector('body');

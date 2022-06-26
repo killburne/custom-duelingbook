@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.34
+// @version      1.1.35
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -85,7 +85,13 @@
                 default: '🐔👍'
             },
             sleeveUrl: {
-                label: 'Sleeve image url',
+                label: 'Sleeve image url for others',
+                type: 'text',
+                size: 300,
+                default: 'https://www.duelingbook.com/./images/sleeves/1.jpg'
+            },
+            ownSleeveUrl: {
+                label: 'Sleeve image url for you',
                 type: 'text',
                 size: 300,
                 default: 'https://www.duelingbook.com/./images/sleeves/1.jpg'
@@ -1016,6 +1022,25 @@
         await sendToDbSocket({action:'Duel', play:'To GY', card:card.data('id')});
     }
 
+    async function sendCardToExtraDeckFU(card) {
+        await sendToDbSocket({action:'Duel', play:'To ED FU', card:card.data('id')});
+    }
+
+    async function removeTokenFromField(card) {
+        await sendToDbSocket({action:'Duel', play:'Remove Token', card:card.data('id')});
+    }
+
+    async function sendCardFromFieldToGY(card) {
+        let cardInfo = card.data('cardfront');
+        if (cardInfo.data('pendulum')) {
+            await sendCardToExtraDeckFU(card);
+        } else if (cardInfo.data('monster_color') === 'Token') {
+            await removeTokenFromField(card);
+        } else {
+            await sendCardToGY(card);
+        }
+    }
+
     async function specialSummonCard(card, position, zone) {
         const data = {action:'Duel', play:position, card:card.data('id')};
         if (zone) {
@@ -1119,6 +1144,10 @@
 
     async function sendCardsToGY(cardArr, name) {
         await doActionsOnMultipleCardNames(cardArr, name, async (card) => sendCardToGY(card));
+    }
+
+    async function sendCardsFromFieldToGY(cardArr, name) {
+        await doActionsOnMultipleCardNames(cardArr, name, async (card) => sendCardFromFieldToGY(card));
     }
 
     async function setMonsters(cardArr, name) {
@@ -1458,7 +1487,7 @@
 
     function getOwnSpellsAndTrapsOnField() {
         const player = getCurrentPlayer();
-        return [player.s1, player.s2, player.s3, player.s4, player.s5].filter((card) => !!card);
+        return [player.s1, player.s2, player.s3, player.s4, player.s5, player.fieldSpell].filter((card) => !!card);
     }
 
     async function sendFromHandToGY(name) {
@@ -1485,7 +1514,7 @@
             if (checkPosition && !card.data(checkPosition)) {
                 continue;
             }
-            await sendCardToGY(card);
+            await sendCardFromFieldToGY(card);
         }
         await waitMs(750);
     }
@@ -1494,14 +1523,14 @@
         const spellTraps = getOwnSpellsAndTrapsOnField();
 
         for (const card of spellTraps) {
-            await sendCardToGY(card);
+            await sendCardFromFieldToGY(card);
         }
         await waitMs(350);
     }
 
     async function sendFromFieldToGY(name) {
         const cardsOnField = getOwnControlledMonsters().concat(getOwnSpellsAndTrapsOnField());
-        await sendCardsToGY(cardsOnField, name);
+        await sendCardsFromFieldToGY(cardsOnField, name);
         await waitMs(250);
     }
 
@@ -1815,11 +1844,12 @@
     }
     function hideProfilePictures() {
         const pfpUrls = getConfigEntry('pfpUrls').split('\n').map(p => p.trim()).filter(p => !!p);
+        const ownPfpUrl = getConfigEntry('ownPfpUrl');
+        const bottomUsername = document.querySelector('#avatar1 .username_txt').textContent;
         //var bottomPfpUrls = GM_config.get('bottomPfpUrl').split('\n').map(p => p.trim()).filter(p => !!p);
 
         if (pfpUrls.length > 0) {
             const topUsername = document.querySelector('#avatar2 .username_txt').textContent;
-            const bottomUsername = document.querySelector('#avatar1 .username_txt').textContent;
 
             const topRandom = xmur3(topUsername);
             const pfpUrl = pfpUrls[topRandom() % pfpUrls.length];
@@ -1829,8 +1859,6 @@
                 }
             }
 
-            const ownPfpUrl = getConfigEntry('ownPfpUrl');
-
             if (bottomUsername != (window.unsafeWindow || window).user_username) {
                 const botRandom = xmur3(bottomUsername);
                 const bottomPfpUrl = pfpUrls[topRandom() % pfpUrls.length];
@@ -1839,11 +1867,12 @@
                         pfpBot.setAttribute('src', bottomPfpUrl);
                     }
                 }
-            } else if (ownPfpUrl) {
-                for (const pfpBot2 of document.querySelectorAll('#avatar1 .image')) {
-                    if (ownPfpUrl !== pfpBot2.getAttribute('src')) {
-                        pfpBot2.setAttribute('src', ownPfpUrl);
-                    }
+            }
+        }
+        if (ownPfpUrl && bottomUsername === (window.unsafeWindow || window).user_username) {
+            for (const pfpBot2 of document.querySelectorAll('#avatar1 .image')) {
+                if (ownPfpUrl !== pfpBot2.getAttribute('src')) {
+                    pfpBot2.setAttribute('src', ownPfpUrl);
                 }
             }
         }
@@ -2447,6 +2476,11 @@
             if (getConfigEntry('active') && sleeveUrl) {
                 data.player1.sleeve = sleeveUrl;
                 data.player2.sleeve = sleeveUrl;
+            }
+            const ownSleeveUrl = getConfigEntry('ownSleeveUrl');
+            const bottomUsername = document.querySelector('#avatar1 .username_txt').textContent;
+            if (getConfigEntry('active') && ownSleeveUrl && bottomUsername === (window.unsafeWindow || window).user_username) {
+                data.player1.sleeve = ownSleeveUrl;
             }
             originalInitPlayers(data);
         };

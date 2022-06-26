@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.36
+// @version      1.1.37
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -380,6 +380,18 @@
                 label: 'Dark Mode For Cards (Everything is XYZ)',
                 type: 'checkbox',
                 default: false
+            },
+            profileRedBorderImageUrl: {
+                label: 'Profile Border Red Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://custom-db.yugioh.app/assets/profile_bg_red.png'
+            },
+            profileBlueBorderImageUrl: {
+                label: 'Profile Border Blue Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://custom-db.yugioh.app/assets/profile_bg_blue.png'
             },
         },
         types: {
@@ -2047,6 +2059,7 @@
         setTokenImages();
         setDarkMode();
         setChooseZonesButton();
+        setProfileBorders();
 
         for (const btn of overrideButtonImages) {
             (window.unsafeWindow || window).removeButton($(btn.selector));
@@ -2245,6 +2258,48 @@
             $('#choose_zones').hide();
         } else {
             $('#choose_zones').show();
+        }
+    }
+
+    function setProfileBorders() {
+        const profileRedBorderImageUrl = getConfigEntry('profileRedBorderImageUrl');
+        const profileRedBorderId = 'profileRedBorderStyle';
+        const profileRedStyleEl = document.getElementById(profileRedBorderId);
+        if (profileRedStyleEl) {
+            if (!profileRedBorderImageUrl) {
+                profileRedStyleEl.remove();
+            }
+        } else if (profileRedBorderImageUrl) {
+            const style = document.createElement('style');
+            style.id = profileRedBorderId;
+            style.innerText = `
+                #avatar1 {
+                    background: url('${profileRedBorderImageUrl}');
+                    background-size: cover;
+                    border-radius: 0;
+                }
+            `;
+            document.body.appendChild(style);
+        }
+
+        const profileBlueBorderImageUrl = getConfigEntry('profileBlueBorderImageUrl');
+        const profileBlueBorderId = 'profileBlueBorderStyle';
+        const profileBlueStyleEl = document.getElementById(profileBlueBorderId);
+        if (profileBlueStyleEl) {
+            if (!profileBlueBorderImageUrl) {
+                profileBlueStyleEl.remove();
+            }
+        } else if (profileBlueBorderImageUrl) {
+            const style = document.createElement('style');
+            style.id = profileBlueBorderId;
+            style.innerText = `
+                #avatar2 {
+                    background: url('${profileBlueBorderImageUrl}');
+                    background-size: cover;
+                    border-radius: 0;
+                }
+            `;
+            document.body.appendChild(style);
         }
     }
 

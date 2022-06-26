@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.35
+// @version      1.1.36
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -2197,8 +2197,40 @@
         input, .textinput, .profile_txt, .chat_background, #watchers, #watchers .users, #preview_txt { background-color: #18181b !important; color: #efeff1 !important; }
         .cell.cell1 { background-image: url('https://custom-db.yugioh.app/assets/cell4.svg'); color: #efeff1 !important; }
         .cell.cell1.selected { background-image: url('https://custom-db.yugioh.app/assets/cell_sel.svg'); color: #efeff1 !important; }
+        select, .combobox, .button, .checkbox, .radiobutton { background: #18181b !important; color: #efeff1 !important; }
+        .checkbox, .radiobutton { border: 1px solid #979797; }
+        .radiobutton { border-radius: 7px; }
         `;
         document.body.appendChild(style);
+        adjustElementsForDarkmode();
+    }
+
+    function adjustElementsForDarkmode() {
+        const comboboxArrowImageUrl = 'https://custom-db.yugioh.app/assets/combobox_arrow.svg';
+        const radioButtonCheckImageUrl = 'https://custom-db.yugioh.app/assets/radio.svg';
+        const checkboxCheckImageUrl = 'https://custom-db.yugioh.app/assets/check.svg';
+
+        const comboboxArrows = document.querySelectorAll('.combobox .combobox_arrow img');
+        console.log(comboboxArrows);
+        for (const comboboxArrow of comboboxArrows) {
+            if (comboboxArrow.getAttribute('src') !== comboboxArrowImageUrl) {
+                comboboxArrow.setAttribute('src', comboboxArrowImageUrl);
+            }
+        }
+
+        const radioButtonChecks = document.querySelectorAll('.radiobutton img.check');
+        for (const radioButtonCheck of radioButtonChecks) {
+            if (radioButtonCheck.getAttribute('src') !== radioButtonCheckImageUrl) {
+                radioButtonCheck.setAttribute('src', radioButtonCheckImageUrl);
+            }
+        }
+
+        const checkboxChecks = document.querySelectorAll('.checkbox img.check');
+        for (const checkboxCheck of checkboxChecks) {
+            if (checkboxCheck.getAttribute('src') !== checkboxCheckImageUrl) {
+                checkboxCheck.setAttribute('src', checkboxCheckImageUrl);
+            }
+        }
     }
 
     function setChooseZonesButton() {
@@ -2650,6 +2682,15 @@
                 return;
             }
             originalSetFieldSpellPic(player, card);
+        };
+
+        const originalChangeComponents = (window.unsafeWindow || window).changeComponents;
+        (window.unsafeWindow || window).changeComponents = (b) => {
+            originalChangeComponents(b);
+            if (!getConfigEntry('darkMode')) {
+                return;
+            }
+            adjustElementsForDarkmode();
         };
 
         const config = {attributes: true, childList: true, characterData: true, subtree: true};

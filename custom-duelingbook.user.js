@@ -1022,6 +1022,25 @@
         await sendToDbSocket({action:'Duel', play:'To GY', card:card.data('id')});
     }
 
+    async function sendCardToExtraDeckFU(card) {
+        await sendToDbSocket({action:'Duel', play:'To ED FU', card:card.data('id')});
+    }
+
+    async function removeTokenFromField(card) {
+        await sendToDbSocket({action:'Duel', play:'Remove Token', card:card.data('id')});
+    }
+
+    async function sendCardFromFieldToGY(card) {
+        let cardInfo = card.data('cardfront');
+        if (cardInfo.data('pendulum')) {
+            await sendCardToExtraDeckFU(card);
+        } else if (cardInfo.data('monster_color') === 'Token') {
+            await removeTokenFromField(card);
+        } else {
+            await sendCardToGY(card);
+        }
+    }
+
     async function specialSummonCard(card, position, zone) {
         const data = {action:'Duel', play:position, card:card.data('id')};
         if (zone) {
@@ -1125,6 +1144,10 @@
 
     async function sendCardsToGY(cardArr, name) {
         await doActionsOnMultipleCardNames(cardArr, name, async (card) => sendCardToGY(card));
+    }
+
+    async function sendCardsFromFieldToGY(cardArr, name) {
+        await doActionsOnMultipleCardNames(cardArr, name, async (card) => sendCardFromFieldToGY(card));
     }
 
     async function setMonsters(cardArr, name) {
@@ -1464,7 +1487,7 @@
 
     function getOwnSpellsAndTrapsOnField() {
         const player = getCurrentPlayer();
-        return [player.s1, player.s2, player.s3, player.s4, player.s5].filter((card) => !!card);
+        return [player.s1, player.s2, player.s3, player.s4, player.s5, player.fieldSpell].filter((card) => !!card);
     }
 
     async function sendFromHandToGY(name) {
@@ -1491,7 +1514,7 @@
             if (checkPosition && !card.data(checkPosition)) {
                 continue;
             }
-            await sendCardToGY(card);
+            await sendCardFromFieldToGY(card);
         }
         await waitMs(750);
     }
@@ -1500,14 +1523,14 @@
         const spellTraps = getOwnSpellsAndTrapsOnField();
 
         for (const card of spellTraps) {
-            await sendCardToGY(card);
+            await sendCardFromFieldToGY(card);
         }
         await waitMs(350);
     }
 
     async function sendFromFieldToGY(name) {
         const cardsOnField = getOwnControlledMonsters().concat(getOwnSpellsAndTrapsOnField());
-        await sendCardsToGY(cardsOnField, name);
+        await sendCardsFromFieldToGY(cardsOnField, name);
         await waitMs(250);
     }
 

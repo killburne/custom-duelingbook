@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.37
+// @version      1.1.38
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -393,6 +393,59 @@
                 size: 300,
                 default: 'https://custom-db.yugioh.app/assets/profile_bg_blue.png'
             },
+            deckConstructorBackgroundImage: {
+                label: 'Deck Constructor Background Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://custom-db.yugioh.app/assets/deck_constructor.svg'
+            },
+            deckConstructorSearchImage: {
+                label: 'Deck Constructor Search Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://custom-db.yugioh.app/assets/search.svg'
+            },
+            deckConstructorSearchLightFontColor: {
+                label: 'Light Font Color For Search Labels',
+                type: 'checkbox',
+                default: true
+            },
+            searchPrevButtonImageUrl: {
+                label: 'Search Prev Button Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://custom-db.yugioh.app/assets/search_prev_btn_up.svg'
+            },
+            searchPrevButtonHoverImageUrl: {
+                label: 'Search Prev Button Hover Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/svg/search_prev_btn_over.svg'
+            },
+            searchPrevButtonDownImageUrl: {
+                label: 'Search Prev Button Down Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/svg/search_prev_btn_down.svg'
+            },
+            searchNextButtonImageUrl: {
+                label: 'Search Next Button Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://custom-db.yugioh.app/assets/search_next_btn_up.svg'
+            },
+            searchNextButtonHoverImageUrl: {
+                label: 'Search Next Button Hover Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/svg/search_next_btn_over.svg'
+            },
+            searchNextButtonDownImageUrl: {
+                label: 'Search Next Button Down Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/svg/search_next_btn_down.svg'
+            },
         },
         types: {
             hotkey: {
@@ -494,6 +547,22 @@
             hover: 'tokenButtonHoverImageUrl',
             up: 'tokenButtonImageUrl',
             cb: (window.unsafeWindow || window).tokenE
+        },
+        {
+            name: 'search_prev_btn',
+            selector: '#search .search_prev_btn',
+            down: 'searchPrevButtonDownImageUrl',
+            hover: 'searchPrevButtonHoverImageUrl',
+            up: 'searchPrevButtonImageUrl',
+            cb: (window.unsafeWindow || window).searchCardsPrevPage
+        },
+        {
+            name: 'search_next_btn',
+            selector: '#search .search_next_btn',
+            down: 'searchNextButtonDownImageUrl',
+            hover: 'searchNextButtonHoverImageUrl',
+            up: 'searchNextButtonImageUrl',
+            cb: (window.unsafeWindow || window).searchCardsNextPage
         },
     ];
 
@@ -2060,6 +2129,7 @@
         setDarkMode();
         setChooseZonesButton();
         setProfileBorders();
+        setSearchFontColor();
 
         for (const btn of overrideButtonImages) {
             (window.unsafeWindow || window).removeButton($(btn.selector));
@@ -2300,6 +2370,28 @@
                 }
             `;
             document.body.appendChild(style);
+        }
+    }
+
+    function setSearchFontColor() {
+        const deckConstructorSearchLightFontColor = getConfigEntry('deckConstructorSearchLightFontColor');
+        const el = document.getElementById('search');
+        if (el) {
+            el.style.color = deckConstructorSearchLightFontColor ? '#efeff1' : '';
+        }
+        const moreEl = document.querySelector('#search .more_options_btn');
+        if (moreEl) {
+            moreEl.style.color = deckConstructorSearchLightFontColor ? '#16c6fa' : '';
+        }
+
+        const bypassBgEl = document.querySelector('.bypass_background');
+        if (bypassBgEl) {
+            bypassBgEl.style['background-color'] = deckConstructorSearchLightFontColor ? '#18181b' : '#efeff1';
+        }
+
+        const bypassLabels = document.querySelectorAll('.bypass_limit_lbl, .tcg_limit_lbl, .ocg_limit_lbl');
+        for (const bypassLabel of bypassLabels) {
+            bypassLabel.style.color = deckConstructorSearchLightFontColor ? '#efeff1' : '#18181b';
         }
     }
 
@@ -2779,6 +2871,25 @@
         preview.find('.name2_txt').addClass('selectable');
         preview.hide();
         (window.unsafeWindow || window).preview = preview;
+
+        const originalGoto = (window.unsafeWindow || window).goto;
+        (window.unsafeWindow || window).goto = (str) => {
+            const deckConstructorBackgroundImage = getConfigEntry('deckConstructorBackgroundImage');
+            if (deckConstructorBackgroundImage) {
+                const el = document.querySelector('#deck_constructor img.deck_constructor');
+                if (el && el.hasAttribute('data-src') && el.getAttribute('data-src') !== deckConstructorBackgroundImage) {
+                    el.setAttribute('data-src', deckConstructorBackgroundImage);
+                }
+            }
+            const deckConstructorSearchImage = getConfigEntry('deckConstructorSearchImage');
+            if (deckConstructorSearchImage) {
+                const el = document.querySelector('#search > img');
+                if (el && el.hasAttribute('data-src') && el.getAttribute('data-src') !== deckConstructorSearchImage) {
+                    el.setAttribute('data-src', deckConstructorSearchImage);
+                }
+            }
+            originalGoto(str);
+        };
 
 
         const config = {attributes: true, childList: true, characterData: true, subtree: true};

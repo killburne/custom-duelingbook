@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.39
+// @version      1.1.40
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -40,6 +40,49 @@
             return (h ^= h >>> 16) >>> 0;
         }
     }
+
+    const overrideButtonImages = [
+        {
+            name: 'die_btn',
+            selector: '#die_btn',
+            down: 'dieButtonDownImageUrl',
+            hover: 'dieButtonHoverImageUrl',
+            up: 'dieButtonImageUrl',
+            cb: (window.unsafeWindow || window).dieE
+        },
+        {
+            name: 'coin_btn',
+            selector: '#coin_btn',
+            down: 'coinButtonDownImageUrl',
+            hover: 'coinButtonHoverImageUrl',
+            up: 'coinButtonImageUrl',
+            cb: (window.unsafeWindow || window).coinE
+        },
+        {
+            name: 'token_btn',
+            selector: '#duel .token_btn',
+            down: 'tokenButtonDownImageUrl',
+            hover: 'tokenButtonHoverImageUrl',
+            up: 'tokenButtonImageUrl',
+            cb: (window.unsafeWindow || window).tokenE
+        },
+        {
+            name: 'search_prev_btn',
+            selector: '#search .search_prev_btn',
+            down: 'searchPrevButtonDownImageUrl',
+            hover: 'searchPrevButtonHoverImageUrl',
+            up: 'searchPrevButtonImageUrl',
+            cb: (window.unsafeWindow || window).searchCardsPrevPage
+        },
+        {
+            name: 'search_next_btn',
+            selector: '#search .search_next_btn',
+            down: 'searchNextButtonDownImageUrl',
+            hover: 'searchNextButtonHoverImageUrl',
+            up: 'searchNextButtonImageUrl',
+            cb: (window.unsafeWindow || window).searchCardsNextPage
+        },
+    ];
 
     GM_config.init({
         id: 'kbCustomDb',
@@ -512,6 +555,20 @@
                     }
                     const keys = JSON.parse(inputs[0].getAttribute('data-keys'));
                     return keys;
+                },
+                reset: function() {
+                    const configId = this.configId;
+                    const id = this.id;
+                    const wrapper = this.wrapper;
+                    if (!wrapper) {
+                        return;
+                    }
+                    const inputs = wrapper.getElementsByTagName('input');
+                    if (inputs.length !== 1) {
+                        return;
+                    }
+                    inputs[0].setAttribute('data-keys', JSON.stringify(this.default));
+                    inputs[0].value = this.default.join(' + ').toUpperCase();
                 }
             }
         },
@@ -522,49 +579,6 @@
             }
         }
     });
-
-    const overrideButtonImages = [
-        {
-            name: 'die_btn',
-            selector: '#die_btn',
-            down: 'dieButtonDownImageUrl',
-            hover: 'dieButtonHoverImageUrl',
-            up: 'dieButtonImageUrl',
-            cb: (window.unsafeWindow || window).dieE
-        },
-        {
-            name: 'coin_btn',
-            selector: '#coin_btn',
-            down: 'coinButtonDownImageUrl',
-            hover: 'coinButtonHoverImageUrl',
-            up: 'coinButtonImageUrl',
-            cb: (window.unsafeWindow || window).coinE
-        },
-        {
-            name: 'token_btn',
-            selector: '#duel .token_btn',
-            down: 'tokenButtonDownImageUrl',
-            hover: 'tokenButtonHoverImageUrl',
-            up: 'tokenButtonImageUrl',
-            cb: (window.unsafeWindow || window).tokenE
-        },
-        {
-            name: 'search_prev_btn',
-            selector: '#search .search_prev_btn',
-            down: 'searchPrevButtonDownImageUrl',
-            hover: 'searchPrevButtonHoverImageUrl',
-            up: 'searchPrevButtonImageUrl',
-            cb: (window.unsafeWindow || window).searchCardsPrevPage
-        },
-        {
-            name: 'search_next_btn',
-            selector: '#search .search_next_btn',
-            down: 'searchNextButtonDownImageUrl',
-            hover: 'searchNextButtonHoverImageUrl',
-            up: 'searchNextButtonImageUrl',
-            cb: (window.unsafeWindow || window).searchCardsNextPage
-        },
-    ];
 
     function getConfigEntry(key) {
         return GM_config.get(key);

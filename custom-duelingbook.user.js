@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.40
+// @version      1.1.41
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -488,6 +488,25 @@
                 type: 'text',
                 size: 300,
                 default: 'https://images.duelingbook.com/svg/search_next_btn_down.svg'
+            },
+            opponentTokenImageUrl: {
+                label: 'Opponent Token Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/tokens/4.jpg'
+            },
+            ownTokenImageUrl: {
+                label: 'Own Token Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/tokens/2.jpg'
+            },
+            customArtworkUrls: {
+                label: 'Override Artwork Images of Cards',
+                type: 'textarea',
+                cols: 300,
+                rows: 10,
+                default: 'Dante, Traveler of the Burning Abyss|https://custom-db.yugioh.app/assets/double_dante.png'
             },
         },
         types: {
@@ -2861,6 +2880,15 @@
             adjustElementsForDarkmode();
         };
 
+
+        const customArtworkUrls = getConfigEntry('customArtworkUrls').split('\n').map((line) => {
+            const spl = line.split('|');
+            const url = spl.pop().trim();
+            return {
+                name: spl.join('|').trim(),
+                url: url
+            };
+        });
         const originalCardFront = (window.unsafeWindow || window).CardFront;
         (window.unsafeWindow || window).CardFront = function CardFront() {
             const card = originalCardFront();
@@ -2876,6 +2904,37 @@
 
                 return ret;
             };
+            const origLoadImage = card.loadImage;
+            card.loadImage = () => {
+                const customArtwork = customArtworkUrls.find(c => c.name === card.data('name'));
+                if (customArtwork && customArtwork.url) {
+                    card.data('pic', customArtwork.url);
+                }
+                origLoadImage();
+            };
+            return card;
+        };
+
+        const origCard = (window.unsafeWindow || window).Card;
+        (window.unsafeWindow || window).Card = function Card() {
+            const card = origCard();
+            const cardFront = card.data('cardfront');
+            if (cardFront) {
+                const origLoadImage = cardFront.loadImage;
+                cardFront.loadImage = () => {
+                    if (cardFront.data('monster_color') === 'Token') {
+                        const opponentTokenImageUrl = getConfigEntry('opponentTokenImageUrl');
+                        if (card.data('owner').username !== (window.unsafeWindow || window).user_username && opponentTokenImageUrl) {
+                            cardFront.data('pic', opponentTokenImageUrl);
+                        }
+                        const ownTokenImageUrl = getConfigEntry('ownTokenImageUrl');
+                        if (card.data('owner').username === (window.unsafeWindow || window).user_username && ownTokenImageUrl) {
+                            cardFront.data('pic', ownTokenImageUrl);
+                        }
+                    }
+                    origLoadImage();
+                };
+            }
             return card;
         };
         const preview = (window.unsafeWindow || window).newCardFront();

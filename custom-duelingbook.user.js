@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.38
+// @version      1.1.39
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -2659,12 +2659,13 @@
         (window.unsafeWindow || window).initPlayers = (data) => {
             const sleeveUrl = getConfigEntry('sleeveUrl');
             if (getConfigEntry('active') && sleeveUrl) {
-                data.player1.sleeve = sleeveUrl;
+                if (data.player1.username !== (window.unsafeWindow || window).user_username) {
+                    data.player1.sleeve = sleeveUrl;
+                }
                 data.player2.sleeve = sleeveUrl;
             }
             const ownSleeveUrl = getConfigEntry('ownSleeveUrl');
-            const bottomUsername = document.querySelector('#avatar1 .username_txt').textContent;
-            if (getConfigEntry('active') && ownSleeveUrl && bottomUsername === (window.unsafeWindow || window).user_username) {
+            if (getConfigEntry('active') && ownSleeveUrl && data.player1.username === (window.unsafeWindow || window).user_username) {
                 data.player1.sleeve = ownSleeveUrl;
             }
             originalInitPlayers(data);

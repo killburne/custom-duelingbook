@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.42
+// @version      1.1.43
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -41,53 +41,85 @@
         }
     }
 
+    function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
+    const buttonStates = ['up', 'over', 'down'];
+
     const overrideButtonImages = [
         {
-            name: 'die_btn',
+            identifier: 'd_die_btn',
+            imgName: 'die_btn',
             selector: '#die_btn',
-            down: 'dieButtonDownImageUrl',
-            hover: 'dieButtonHoverImageUrl',
-            up: 'dieButtonImageUrl',
+            label: 'Duel Die Button',
             cb: (window.unsafeWindow || window).dieE
         },
         {
-            name: 'coin_btn',
+            identifier: 'd_coin_btn',
+            imgName: 'coin_btn',
             selector: '#coin_btn',
-            down: 'coinButtonDownImageUrl',
-            hover: 'coinButtonHoverImageUrl',
-            up: 'coinButtonImageUrl',
+            label: 'Duel Coin Button',
             cb: (window.unsafeWindow || window).coinE
         },
         {
-            name: 'token_btn',
+            identifier: 'd_token_btn',
+            imgName: 'token_btn',
             selector: '#duel .token_btn',
-            down: 'tokenButtonDownImageUrl',
-            hover: 'tokenButtonHoverImageUrl',
-            up: 'tokenButtonImageUrl',
+            label: 'Duel Token Button',
             cb: (window.unsafeWindow || window).tokenE
         },
         {
-            name: 'search_prev_btn',
+            identifier: 'dc_search_prev_btn',
+            imgName: 'search_prev_btn',
             selector: '#search .search_prev_btn',
-            down: 'searchPrevButtonDownImageUrl',
-            hover: 'searchPrevButtonHoverImageUrl',
-            up: 'searchPrevButtonImageUrl',
+            label: 'Deck Constructor Search Prev Button',
             cb: (window.unsafeWindow || window).searchCardsPrevPage
         },
         {
-            name: 'search_next_btn',
+            identifier: 'dc_search_next_btn',
+            imgName: 'search_next_btn',
             selector: '#search .search_next_btn',
-            down: 'searchNextButtonDownImageUrl',
-            hover: 'searchNextButtonHoverImageUrl',
-            up: 'searchNextButtonImageUrl',
+            label: 'Deck Constructor Search Next Button',
             cb: (window.unsafeWindow || window).searchCardsNextPage
+        },
+        {
+            identifier: 'dc_token_btn',
+            imgName: 'token_btn',
+            selector: '#deck_constructor .token_btn',
+            label: 'Deck Constructor Token Button',
+            cb: (window.unsafeWindow || window).showTokens
+        },
+        {
+            identifier: 'dc_sort_btn',
+            imgName: 'sort_btn',
+            selector: '#deck_constructor .sort_btn',
+            label: 'Deck Constructor Sort Button',
+            cb: (window.unsafeWindow || window).sortDeck
+        },
+        {
+            identifier: 'dc_info_btn',
+            imgName: 'info_btn',
+            selector: '#deck_constructor .info_btn',
+            label: 'Deck Constructor Randomize Sort Button',
+            cb: (window.unsafeWindow || window).randomizeDeck
         },
     ];
 
-    GM_config.init({
-        id: 'kbCustomDb',
-        title: 'Custom DB',
-        fields: {
+    function getOverrideButton($btn) {
+        let button = overrideButtonImages.find((b) => $(b.selector)[0] === $btn[0]);
+        if (!button) {
+            return;
+        }
+        button = {...button};
+        for (const state of buttonStates) {
+            button[state] = getConfigEntry(`${button.identifier}_${state}`);
+        }
+        return button;
+    }
+
+    function getConfigFields() {
+        const config = {
             active: {
                 label: 'Active',
                 type: 'checkbox',
@@ -338,60 +370,6 @@
                 size: 300,
                 default: 'https://images.duelingbook.com/svg/white_glow.svg'
             },
-            dieButtonImageUrl: {
-                label: 'Die Button Image Url',
-                type: 'text',
-                size: 300,
-                default: 'https://images.duelingbook.com/svg/die_btn_up.svg'
-            },
-            dieButtonHoverImageUrl: {
-                label: 'Die Button Hover Image Url',
-                type: 'text',
-                size: 300,
-                default: 'https://images.duelingbook.com/svg/die_btn_over.svg'
-            },
-            dieButtonDownImageUrl: {
-                label: 'Die Button Down Image Url',
-                type: 'text',
-                size: 300,
-                default: 'https://images.duelingbook.com/svg/die_btn_down.svg'
-            },
-            coinButtonImageUrl: {
-                label: 'Coin Button Image Url',
-                type: 'text',
-                size: 300,
-                default: 'https://images.duelingbook.com/svg/coin_btn_up.svg'
-            },
-            coinButtonHoverImageUrl: {
-                label: 'Coin Button Hover Image Url',
-                type: 'text',
-                size: 300,
-                default: 'https://images.duelingbook.com/svg/coin_btn_over.svg'
-            },
-            coinButtonDownImageUrl: {
-                label: 'Coin Button Down Image Url',
-                type: 'text',
-                size: 300,
-                default: 'https://images.duelingbook.com/svg/coin_btn_down.svg'
-            },
-            tokenButtonImageUrl: {
-                label: 'Token Button Image Url',
-                type: 'text',
-                size: 300,
-                default: 'https://images.duelingbook.com/svg/token_btn_up.svg'
-            },
-            tokenButtonHoverImageUrl: {
-                label: 'Token Button Hover Image Url',
-                type: 'text',
-                size: 300,
-                default: 'https://images.duelingbook.com/svg/token_btn_over.svg'
-            },
-            tokenButtonDownImageUrl: {
-                label: 'Token Button Down Image Url',
-                type: 'text',
-                size: 300,
-                default: 'https://images.duelingbook.com/svg/token_btn_down.svg'
-            },
             counterButtonImageUrl: {
                 label: 'Counter Button Image Url',
                 type: 'text',
@@ -453,42 +431,6 @@
                 type: 'checkbox',
                 default: true
             },
-            searchPrevButtonImageUrl: {
-                label: 'Search Prev Button Image Url',
-                type: 'text',
-                size: 300,
-                default: 'https://custom-db.yugioh.app/assets/search_prev_btn_up.svg'
-            },
-            searchPrevButtonHoverImageUrl: {
-                label: 'Search Prev Button Hover Image Url',
-                type: 'text',
-                size: 300,
-                default: 'https://images.duelingbook.com/svg/search_prev_btn_over.svg'
-            },
-            searchPrevButtonDownImageUrl: {
-                label: 'Search Prev Button Down Image Url',
-                type: 'text',
-                size: 300,
-                default: 'https://images.duelingbook.com/svg/search_prev_btn_down.svg'
-            },
-            searchNextButtonImageUrl: {
-                label: 'Search Next Button Image Url',
-                type: 'text',
-                size: 300,
-                default: 'https://custom-db.yugioh.app/assets/search_next_btn_up.svg'
-            },
-            searchNextButtonHoverImageUrl: {
-                label: 'Search Next Button Hover Image Url',
-                type: 'text',
-                size: 300,
-                default: 'https://images.duelingbook.com/svg/search_next_btn_over.svg'
-            },
-            searchNextButtonDownImageUrl: {
-                label: 'Search Next Button Down Image Url',
-                type: 'text',
-                size: 300,
-                default: 'https://images.duelingbook.com/svg/search_next_btn_down.svg'
-            },
             opponentTokenImageUrl: {
                 label: 'Opponent Token Image Url',
                 type: 'text',
@@ -508,7 +450,32 @@
                 rows: 10,
                 default: 'Dante, Traveler of the Burning Abyss|https://custom-db.yugioh.app/assets/double_dante.png'
             },
-        },
+            attackSwordImageUrl: {
+                label: 'Attack Sword Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://custom-db.yugioh.app/assets/laser_sword.png'
+            },
+        };
+
+        for (const button of overrideButtonImages) {
+            for (const state of buttonStates) {
+                config[`${button.identifier}_${state}`] = {
+                    label: `${button.label} ${capitalizeFirstLetter(state)} Image Url`,
+                    type: 'text',
+                    size: 300,
+                    default: `https://images.duelingbook.com/svg/${button.imgName}_${state}.svg`
+                };
+            }
+        }
+
+        return config;
+    }
+
+    GM_config.init({
+        id: 'kbCustomDb',
+        title: 'Custom DB',
+        fields: getConfigFields(),
         types: {
             hotkey: {
                 default: null,
@@ -2164,11 +2131,6 @@
         setProfileBorders();
         setSearchFontColor();
         parseCustomArtworkUrls();
-
-        for (const btn of overrideButtonImages) {
-            (window.unsafeWindow || window).removeButton($(btn.selector));
-            (window.unsafeWindow || window).addButton($(btn.selector), btn.cb);
-        }
     }
 
 
@@ -2451,6 +2413,9 @@
         }
         addMacroButtons();
         if (initDone) {
+            for (const btn of overrideButtonImages) {
+                (window.unsafeWindow || window).addButton($(btn.selector), btn.cb);
+            }
             return;
         }
         initDone = true;
@@ -2773,8 +2738,9 @@
                     name = btn.attr('id');
                 }
             }
-            const buttonConfig = overrideButtonImages.find(b => b.name === name);
+            const buttonConfig = getOverrideButton(btn);
             if (buttonConfig) {
+                (window.unsafeWindow || window).removeButton(btn);
                 var img = btn.find('img').last();
                 btn.css('cursor', 'pointer');
                 var path = (window.unsafeWindow || window).IMAGES_START + 'svg/';
@@ -2788,9 +2754,9 @@
                     ext = src.substring(src.length - 4, src.length);
                 }
                 if (img.length > 0 && src.indexOf('_up.') >= 0) {
-                    const upImage = getConfigEntry(buttonConfig.up);
-                    const downImage = getConfigEntry(buttonConfig.down);
-                    const hoverImage = getConfigEntry(buttonConfig.hover);
+                    const upImage = buttonConfig.up;
+                    const downImage = buttonConfig.down;
+                    const hoverImage = buttonConfig.over;
                     if (upImage) {
                         img.attr('data-src', upImage);
                         img.attr('src', upImage);
@@ -2831,6 +2797,9 @@
                 origAddButton(btn, cb);
             }
         };
+        for (const btn of overrideButtonImages) {
+            (window.unsafeWindow || window).addButton($(btn.selector), btn.cb);
+        }
 
         const originalExportDeckE = (window.unsafeWindow || window).exportDeckE;
         (window.unsafeWindow || window).exportDeckE = () => {
@@ -2967,6 +2936,13 @@
                 const el = document.querySelector('#search > img');
                 if (el && el.hasAttribute('data-src') && el.getAttribute('data-src') !== deckConstructorSearchImage) {
                     el.setAttribute('data-src', deckConstructorSearchImage);
+                }
+            }
+            const attackSwordImageUrl = getConfigEntry('attackSwordImageUrl');
+            if (attackSwordImageUrl) {
+                const el = document.querySelector('#sword > img');
+                if (el && el.hasAttribute('data-src') && el.getAttribute('data-src') !== attackSwordImageUrl) {
+                    el.setAttribute('data-src', attackSwordImageUrl);
                 }
             }
             originalGoto(str);

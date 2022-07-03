@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.41
+// @version      1.1.42
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -2163,11 +2163,25 @@
         setChooseZonesButton();
         setProfileBorders();
         setSearchFontColor();
+        parseCustomArtworkUrls();
 
         for (const btn of overrideButtonImages) {
             (window.unsafeWindow || window).removeButton($(btn.selector));
             (window.unsafeWindow || window).addButton($(btn.selector), btn.cb);
         }
+    }
+
+
+    let customArtworkUrls = [];
+    function parseCustomArtworkUrls() {
+        customArtworkUrls = getConfigEntry('customArtworkUrls').split('\n').map((line) => {
+            const spl = line.split('|');
+            const url = spl.pop().trim();
+            return {
+                name: spl.join('|').trim(),
+                url: url
+            };
+        });
     }
 
     function sendThinkingText() {
@@ -2440,6 +2454,8 @@
             return;
         }
         initDone = true;
+
+        parseCustomArtworkUrls();
 
         (window.unsafeWindow || window).restoreDuelVSP = () => {
             $('#duel .cout_txt').scrollTop($('#duel .cout_txt').scrollMax());
@@ -2880,15 +2896,6 @@
             adjustElementsForDarkmode();
         };
 
-
-        const customArtworkUrls = getConfigEntry('customArtworkUrls').split('\n').map((line) => {
-            const spl = line.split('|');
-            const url = spl.pop().trim();
-            return {
-                name: spl.join('|').trim(),
-                url: url
-            };
-        });
         const originalCardFront = (window.unsafeWindow || window).CardFront;
         (window.unsafeWindow || window).CardFront = function CardFront() {
             const card = originalCardFront();

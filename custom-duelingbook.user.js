@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.45
+// @version      1.1.46
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -2145,10 +2145,16 @@
     function parseCustomArtworkUrls() {
         customArtworkUrls = getConfigEntry('customArtworkUrls').split('\n').map((line) => {
             const spl = line.split('|');
-            const url = spl.pop().trim();
+            let fullArt = false;
+            if (spl[0].trim() === 'fullArt') {
+                fullArt = true;
+                spl.splice(0, 1);
+            }
+            const url = spl.length > 1 ? spl.pop().trim() : '';
             return {
                 name: spl.join('|').trim(),
-                url: url
+                url: url,
+                fullArt: fullArt
             };
         });
     }
@@ -2280,6 +2286,17 @@
     }
 
     function makeCardsFullArt() {
+        const customArtworkFullArtCssId = 'customArtworkFullArtCssId';
+        const elCustom = document.getElementById(customArtworkFullArtCssId);
+        if (!elCustom) {
+            const style = document.createElement('style');
+            style.id = customArtworkFullArtCssId;
+            style.innerText = `
+            .cardfront.full-art .cardfront_content .pic { left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; z-index: 99999 !important; }
+            `;
+            document.body.appendChild(style);
+        }
+
         const id = 'fullArtCardsCss';
         const el = document.getElementById(id);
         if (el) {
@@ -2912,6 +2929,11 @@
                 const customArtwork = customArtworkUrls.find(c => c.name === card.data('name'));
                 if (customArtwork && customArtwork.url) {
                     card.data('pic', customArtwork.url);
+                }
+                if (customArtwork && customArtwork.fullArt) {
+                    card.addClass('full-art');
+                } else {
+                    card.removeClass('full-art');
                 }
                 origLoadImage();
             };

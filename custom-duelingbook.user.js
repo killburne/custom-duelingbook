@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.44
+// @version      1.1.45
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -456,6 +456,11 @@
                 type: 'text',
                 size: 300,
                 default: 'https://custom-db.yugioh.app/assets/laser_sword.png'
+            },
+            fullArtCards: {
+                label: 'Full Art Cards',
+                type: 'checkbox',
+                default: false
             },
         };
 
@@ -2132,6 +2137,7 @@
         setProfileBorders();
         setSearchFontColor();
         parseCustomArtworkUrls();
+        makeCardsFullArt();
     }
 
 
@@ -2271,6 +2277,26 @@
         if (counterButtonGlowImageUrl) {
             $('.counter img.glow').attr('src', counterButtonGlowImageUrl);
         }
+    }
+
+    function makeCardsFullArt() {
+        const id = 'fullArtCardsCss';
+        const el = document.getElementById(id);
+        if (el) {
+            if (!getConfigEntry('fullArtCards')) {
+                el.remove();
+            }
+            return;
+        }
+        if (!getConfigEntry('fullArtCards')) {
+            return;
+        }
+        const style = document.createElement('style');
+        style.id = id;
+        style.innerText = `
+        .cardfront .cardfront_content .pic { left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; z-index: 99999 !important; }
+        `;
+        document.body.appendChild(style);
     }
 
     function setDarkMode() {

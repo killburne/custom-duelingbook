@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.46
+// @version      1.1.47
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -448,7 +448,7 @@
                 type: 'textarea',
                 cols: 300,
                 rows: 10,
-                default: 'Dante, Traveler of the Burning Abyss|https://custom-db.yugioh.app/assets/double_dante.png\n' +
+                default: 'fullArt|Dante, Traveler of the Burning Abyss|https://custom-db.yugioh.app/assets/long_dante.png\n' +
 		    'Beatrice, Lady of the Eternal|https://cdn.7tv.app/emote/614f88b220eaf897465a6574/4xs'
             },
             attackSwordImageUrl: {

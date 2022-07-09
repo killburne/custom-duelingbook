@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.47
+// @version      1.1.48
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -1055,6 +1055,17 @@
                         await setCardsFromDeckToSpellTrapZone(cmd.param);
                     }
                     break;
+                case 'banishCardsFromTopOfDeck':
+                    if (cmd.param) {
+                        const amount = parseInt(cmd.param);
+                        if (amount > 0) {
+                            await banishCardsFromTopOfDeck(amount);
+                        }
+                    }
+                    break;
+                case 'returnRandomBanishedCardToHand':
+                    await returnRandomBanishedCardToHand();
+                    break;
             }
         } else {
             await sendToDbSocket({action:'Duel', play:'Duel message', message:replaceVariablesInStr(message.trim()), html:0});
@@ -1100,6 +1111,27 @@
 
     async function banishCardFaceDown(card) {
         await sendToDbSocket({action:'Duel', play:'Banish FD', card:card.data('id')});
+    }
+
+    async function banishCardsFromTopOfDeck(amount) {
+        const player = getCurrentPlayer();
+        if (!player) {
+            return;
+        }
+        const cards = player.main_arr.slice(0, Math.min(player.main_arr.length, amount));
+        for (const card of cards) {
+            await banishCardFaceDown(card);
+            await waitMs(80);
+        }
+    }
+
+    async function returnRandomBanishedCardToHand() {
+        const player = getCurrentPlayer();
+        if (!player || player.banished_arr.length === 0) {
+            return;
+        }
+        const card = player.banished_arr[Math.floor(player.banished_arr.length * Math.random())];
+        await addCardToHand(card);
     }
 
     async function addCardToHand(card) {

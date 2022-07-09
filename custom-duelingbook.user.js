@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.48
+// @version      1.1.49
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -1055,11 +1055,11 @@
                         await setCardsFromDeckToSpellTrapZone(cmd.param);
                     }
                     break;
-                case 'banishCardsFromTopOfDeck':
+                case 'banishCardsFromTopOfDeckFD':
                     if (cmd.param) {
                         const amount = parseInt(cmd.param);
                         if (amount > 0) {
-                            await banishCardsFromTopOfDeck(amount);
+                            await banishCardsFromTopOfDeckFD(amount);
                         }
                     }
                     break;
@@ -1113,7 +1113,7 @@
         await sendToDbSocket({action:'Duel', play:'Banish FD', card:card.data('id')});
     }
 
-    async function banishCardsFromTopOfDeck(amount) {
+    async function banishCardsFromTopOfDeckFD(amount) {
         const player = getCurrentPlayer();
         if (!player) {
             return;

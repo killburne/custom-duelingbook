@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.50
+// @version      1.1.51
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -475,6 +475,16 @@
             }
         }
 
+        config.import = {
+            label: 'Import Settings',
+            type: 'import'
+        };
+
+        config.export = {
+            label: 'Export Settings',
+            type: 'export'
+        };
+
         return config;
     }
 
@@ -562,6 +572,100 @@
                     inputs[0].setAttribute('data-keys', JSON.stringify(this.default));
                     inputs[0].value = this.default.join(' + ').toUpperCase();
                 }
+            },
+            export: {
+                default: null,
+                toNode: function() {
+                    const configId = this.configId;
+                    const field = this.settings;
+                    const value = this.value;
+                    const id = this.id;
+                    const create = this.create;
+                    const retNode = create('div', { className: 'config_var', id: `${configId}_${id}_var` });
+
+                    retNode.appendChild(create('label', {
+                        id: `${configId}_${id}_input_label`,
+                        for: `${configId}_${id}_input`,
+                        className: 'field_label',
+                        innerHTML: field.label
+                    }));
+
+                    const button = create('button', {
+                        id: `${configId}_${id}_input`,
+                        className: 'block',
+                        innerText: field.label,
+                        onclick: () => {
+                            download('custom-db-settings.json', GM_getValue(configId));
+                        }
+                    });
+
+                    retNode.appendChild(button);
+
+                    return retNode;
+                },
+                toValue: function() {
+                    return '';
+                },
+                reset: function() {
+                }
+            },
+            import: {
+                default: null,
+                toNode: function() {
+                    const configId = this.configId;
+                    const field = this.settings;
+                    const value = this.value;
+                    const id = this.id;
+                    const create = this.create;
+                    const retNode = create('div', { className: 'config_var', id: `${configId}_${id}_var` });
+
+                    retNode.appendChild(create('label', {
+                        id: `${configId}_${id}_input_label`,
+                        for: `${configId}_${id}_input`,
+                        className: 'field_label',
+                        innerHTML: field.label
+                    }));
+
+                    const input = create('input', {
+                        id: `${configId}_${id}_input`,
+                        type: 'file',
+                        accept: 'application/json',
+                        className: 'block',
+                        onchange: function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('import', e);
+                            if (e.target.files.length > 0) {
+                                readFile(e.target.files[0], (txt) => {
+                                    e.target.value = '';
+                                    try {
+                                        const data = JSON.parse(txt);
+                                        for (const key in data) {
+                                            try {
+                                                GM_config.set(key, data[key]);
+                                            } catch(e) {}
+                                        }
+                                        GM_config.save();
+                                        GM_config.close();
+                                        GM_config.open();
+                                        alert('Done Importing Settings!');
+                                    } catch (e) {
+                                        alert('Failed to import settings. ' + e.message);
+                                    }
+                                });
+                            }
+                        }
+                    });
+
+                    retNode.appendChild(input);
+
+                    return retNode;
+                },
+                toValue: function() {
+                    return '';
+                },
+                reset: function() {
+                }
             }
         },
         events: {
@@ -571,6 +675,25 @@
             }
         }
     });
+
+    function download(filename, text) {
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        element.setAttribute('download', filename);
+
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+    }
+
+    function readFile(file, cb) {
+        var reader = new FileReader();
+        reader.onload = () => cb(reader.result);
+        reader.readAsText(file);
+    };
 
     function getConfigEntry(key) {
         return GM_config.get(key);

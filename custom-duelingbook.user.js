@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.49
+// @version      1.1.50
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -2040,8 +2040,9 @@
         if (!okImageUrl) {
             return;
         }
-        for (const okImage of document.querySelectorAll('.duel_avatar .all_good')) {
+        for (const okImage of document.querySelectorAll('.duel_avatar .all_good img')) {
             if (okImage.getAttribute('src') !== okImageUrl) {
+                okImage.style.width = '100%';
                 okImage.setAttribute('src', okImageUrl);
             }
         }

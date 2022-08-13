@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.51
+// @version      1.1.52
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -2261,17 +2261,9 @@
         return str.split(/\b/).map((word) => bannedWords.includes(word.toLowerCase()) ? getCensoredWord(word, showTitle) : word).join('');
     }
 
-    const originalSleeveStart = (window.unsafeWindow || window).SLEEVE_START;
-
     function applyChanges() {
         if (!getConfigEntry('active') || !isOnDb()) {
-            (window.unsafeWindow || window).SLEEVE_START = originalSleeveStart;
             return;
-        }
-        if (getConfigEntry('sleeveUrl')) {
-            (window.unsafeWindow || window).SLEEVE_START = '';
-        } else {
-            (window.unsafeWindow || window).SLEEVE_START = originalSleeveStart;
         }
         hideProfilePictures();
         setBackgroundImage();
@@ -3050,7 +3042,7 @@
         const originalSetFieldSpellPic = (window.unsafeWindow || window).setFieldSpellPic;
         (window.unsafeWindow || window).setFieldSpellPic = (player, card) => {
             if (getConfigEntry('hideFieldSpellBackground')) {
-                (window.unsafeWindow || window).removeFieldSpellPic();
+                (window.unsafeWindow || window).$('#field_spell_pic').attr('src', (window.unsafeWindow || window).IMAGES_START + 'blank.png');
                 return;
             }
             originalSetFieldSpellPic(player, card);
@@ -3116,6 +3108,19 @@
                     origLoadImage();
                 };
             }
+            const sleeve = card.find('.cardback img');
+            const origSetSleeve = card.setSleeve;
+            card.setSleeve = (str) => {
+                if (getConfigEntry('active') && [getConfigEntry('sleeveUrl'), getConfigEntry('ownSleeveUrl')].includes(str)) {
+                    if (card.data('isSkill')) {
+                        return;
+                    }
+                    sleeve.attr('src', str);
+                    card.data('sleeve', str);
+                } else {
+                    origSetSleeve(str);
+                }
+            };
             return card;
         };
         const preview = (window.unsafeWindow || window).newCardFront();

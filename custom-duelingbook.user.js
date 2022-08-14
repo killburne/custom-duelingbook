@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.52
+// @version      1.1.53
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -303,6 +303,18 @@
                 type: 'text',
                 size: 300,
                 default: 'https://custom-db.yugioh.app/assets/field_zones2.svg'
+            },
+            deckZoneImageUrlMr3: {
+                label: 'Deck zone image url (MR3)',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/svg/field_decks.svg'
+            },
+            fieldZoneImageUrlMr3: {
+                label: 'Field zone image url (MR3)',
+                type: 'text',
+                size: 300,
+                default: 'https://images.duelingbook.com/svg/field_zones.svg'
             },
             phaseButtonBackgroundImageUrl: {
                 label: 'Phase Button Background Image Url',
@@ -2277,6 +2289,8 @@
         replaceThinkEmote();
         setDeckZoneImageUrl();
         setFieldZoneImageUrl();
+        setDeckZoneImageUrlMr3();
+        setFieldZoneImageUrlMr3();
         setPhaseButtons();
         setTurnButton();
         setTokenImages();
@@ -2350,6 +2364,46 @@
             return;
         }
         const deckZoneImageUrl = getConfigEntry('deckZoneImageUrl');
+        if (!deckZoneImageUrl) {
+            if (el.getAttribute('data-orig-image') && el.getAttribute('src') !== el.getAttribute('data-orig-image')) {
+                el.setAttribute('src', el.getAttribute('data-orig-image'));
+            }
+            return;
+        }
+        if (el.getAttribute('src') !== deckZoneImageUrl) {
+            if (!el.getAttribute('data-orig-image')) {
+                el.setAttribute('data-orig-image', el.getAttribute('src'));
+            }
+            el.setAttribute('src', deckZoneImageUrl);
+        }
+    }
+
+    function setFieldZoneImageUrlMr3() {
+        const el = document.getElementById('field_zones');
+        if (!el) {
+            return;
+        }
+        const fieldZoneImageUrl = getConfigEntry('fieldZoneImageUrlMr3');
+        if (!fieldZoneImageUrl) {
+            if (el.getAttribute('data-orig-image') && el.getAttribute('src') !== el.getAttribute('data-orig-image')) {
+                el.setAttribute('src', el.getAttribute('data-orig-image'));
+            }
+            return;
+        }
+        if (el.getAttribute('src') !== fieldZoneImageUrl) {
+            if (!el.getAttribute('data-orig-image')) {
+                el.setAttribute('data-orig-image', el.getAttribute('src'));
+            }
+            el.setAttribute('src', fieldZoneImageUrl);
+        }
+    }
+
+    function setDeckZoneImageUrlMr3() {
+        const el = document.getElementById('field_decks');
+        if (!el) {
+            return;
+        }
+        const deckZoneImageUrl = getConfigEntry('deckZoneImageUrlMr3');
         if (!deckZoneImageUrl) {
             if (el.getAttribute('data-orig-image') && el.getAttribute('src') !== el.getAttribute('data-orig-image')) {
                 el.setAttribute('src', el.getAttribute('data-orig-image'));

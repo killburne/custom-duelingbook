@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.53
+// @version      1.1.54
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -3165,7 +3165,7 @@
             const sleeve = card.find('.cardback img');
             const origSetSleeve = card.setSleeve;
             card.setSleeve = (str) => {
-                if (getConfigEntry('active') && [getConfigEntry('sleeveUrl'), getConfigEntry('ownSleeveUrl')].includes(str)) {
+                if (getConfigEntry('active') && str && (getConfigEntry('sleeveUrl') === str || getConfigEntry('ownSleeveUrl') === str)) {
                     if (card.data('isSkill')) {
                         return;
                     }

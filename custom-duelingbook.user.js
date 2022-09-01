@@ -461,7 +461,7 @@
                 cols: 300,
                 rows: 10,
                 default: 'fullArt|Dante, Traveler of the Burning Abyss|https://custom-db.yugioh.app/assets/long_dante.png\n' +
-		    'Beatrice, Lady of the Eternal|https://cdn.7tv.app/emote/614f88b220eaf897465a6574/4xs'
+		    'Beatrice, Lady of the Eternal|https://cdn.7tv.app/emote/614f88b220eaf897465a6574/4x'
             },
             attackSwordImageUrl: {
                 label: 'Attack Sword Image Url',

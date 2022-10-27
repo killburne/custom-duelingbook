@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.55
+// @version      1.1.56
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -3079,6 +3079,16 @@
                 (window.unsafeWindow || window).restoreDuelLogVSP();
                 //$('#duel_log .log_txt').scrollTop(duel_log_vsp); // received complaints
             }
+        };
+
+        const originalGetDeckColor = (window.unsafeWindow || window).getDeckColor;
+        (window.unsafeWindow || window).getDeckColor = (data) => {
+            const darkMode = getConfigEntry('darkMode');
+            let color = originalGetDeckColor(data);
+            if (darkMode && color === '#000000') {
+                color = '#FFFFFF';
+            }
+            return color;
         };
 
         const originalInitPlayers = (window.unsafeWindow || window).initPlayers;

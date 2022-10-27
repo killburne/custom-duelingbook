@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.54
+// @version      1.1.55
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -2533,10 +2533,10 @@
         const style = document.createElement('style');
         style.id = id;
         style.innerText = `
-        .cout_txt { background-color: #18181b; color: #efeff1; border: 0; }
-        .cout_txt .chat-line { padding: 2px }
-        .cout_txt .chat-line:nth-child(even) { background: rgba(255, 255, 255, 0.05) }
-        .cout_txt .chat-line:hover { background: rgba(255, 255, 255, 0.2) }
+        .cout_txt, .log_txt { background-color: #18181b; color: #efeff1; border: 0; }
+        .cout_txt .chat-line, .log_txt .chat-line { padding: 2px }
+        .cout_txt .chat-line:nth-child(even), .log_txt .chat-line:nth-child(even) { background: rgba(255, 255, 255, 0.05) }
+        .cout_txt .chat-line:hover, .log_txt .chat-line:hover { background: rgba(255, 255, 255, 0.2) }
         input, .textinput, .profile_txt, .chat_background, #watchers, #watchers .users, #preview_txt { background-color: #18181b !important; color: #efeff1 !important; }
         .cell.cell1 { background-image: url('https://custom-db.yugioh.app/assets/cell4.svg'); color: #efeff1 !important; }
         .cell.cell1.selected { background-image: url('https://custom-db.yugioh.app/assets/cell_sel.svg'); color: #efeff1 !important; }
@@ -2885,11 +2885,11 @@
             if (data.messages.length > 0) {
                 $('#duel .cout_txt').html('');
                 for (let i = 0; i < data.messages.length; i++) {
-                    let color = "0000FF";
+                    let color = getConfigEntry('darkMode') ? "#00a1ff" : "0000FF";
                     if (data.messages[i].color) {
                         color = data.messages[i].color;
                     }
-                    if (color == "0000FF" && (window.unsafeWindow || window).isPlayer1(data.messages[i].username)) {
+                    if ((color === "0000FF" || color === "#00a1ff") && (window.unsafeWindow || window).isPlayer1(data.messages[i].username)) {
                         color = "FF0000";
                     }
 
@@ -2913,6 +2913,172 @@
             (window.unsafeWindow || window).saveDuelVSP();
             $('#duel .cout_txt').append(getChatLineHtml(str, getConfigEntry('darkMode') ? '#ffffff' : '#000000'));
             (window.unsafeWindow || window).restoreDuelVSP();
+        };
+
+
+
+        function getLogLineHtml(username, timestamp, color, escapedMessage) {
+            const hasMessage = typeof escapedMessage === 'string';
+            let message = `<font color="${color}">${timestamp}${(window.unsafeWindow || window).escapeHTML(username)}${ hasMessage ? ` ${escapedMessage}` : '' }</font>`;
+            return `<div class="chat-line" style="position: initial;">${message}</div>`;
+        }
+
+        const originalUpdateDuelLog = (window.unsafeWindow || window).updateDuelLog;
+        (window.unsafeWindow || window).updateDuelLog = (data) => {
+            let str = "";
+            (window.unsafeWindow || window).logTurnCount = 0;
+            for (let i = 0; i < (window.unsafeWindow || window).duel_logs.length; i++) {
+                const duelLogEntry = (window.unsafeWindow || window).duel_logs[i];
+                let color = getConfigEntry('darkMode') ? "#00a1ff" : "#0000FF";
+                let entry = duelLogEntry.public_log;
+                let user = "";
+                let timestamp = (window.unsafeWindow || window).getTimestamp(duelLogEntry.seconds);
+                if (!duelLogEntry.seconds && duelLogEntry.timestamp) {
+                    timestamp = duelLogEntry.timestamp;
+                }
+                if ($('#duel_log .private_cb').is(":checked")) {
+                    if (duelLogEntry.private_log) {
+                        entry = duelLogEntry.private_log;
+                    }
+                }
+                if ($('#duel_log .search_txt').val() != "") {
+                    if (entry.toLowerCase().indexOf($('#duel_log .search_txt').val().toLowerCase()) < 0) {
+                        continue;
+                    }
+                }
+                if (!duelLogEntry.username) {
+                    color = "#777777";
+                }
+                else if ((window.unsafeWindow || window).player1.username == duelLogEntry.username || ((window.unsafeWindow || window).tag_duel && (window.unsafeWindow || window).player3.username == duelLogEntry.username)) {
+                    color = "#FF0000";
+                }
+                else if ((window.unsafeWindow || window).player2.username == duelLogEntry.username || ((window.unsafeWindow || window).tag_duel && (window.unsafeWindow || window).player4.username == duelLogEntry.username)) {
+                    color = getConfigEntry('darkMode') ? "#00a1ff" : "#0000FF";
+                }
+                else {
+                    color = getConfigEntry('darkMode') ? '#ffffff' : "#000000";
+                }
+                if ($('#duel_log .usernames_cb').is(":checked")) {
+                    user = " " + duelLogEntry.username + ":";
+                }
+                if (duelLogEntry.type == "chat") {
+                    if ($('#duel_log .chat_cb').is(":checked")) {
+                        str += getLogLineHtml(user, timestamp, color, `<i>${(window.unsafeWindow || window).escapeHTML(entry)}</i>`);
+                    }
+                }
+                else if (duelLogEntry.type == "duel") {
+                    if ($('#duel_log .duel_cb').is(":checked")) {
+                        if (entry == "Entered Draw Phase") {
+                            (window.unsafeWindow || window).logTurnCount++;
+                            //str += '<font color="' + color + '">--------------------------------------------</font><br>';
+                            str += '<font color="' + color + '">----------------(Turn ' + (window.unsafeWindow || window).logTurnCount + ')';
+                            if ((window.unsafeWindow || window).logTurnCount < 10) {
+                                str += '-';
+                            }
+                            str += '----------------</font><br>';
+                        }
+                        str += getLogLineHtml(user, timestamp, color, (window.unsafeWindow || window).escapeHTML(entry));
+                    }
+                }
+                else {
+                    if ($('#duel_log .game_cb').is(":checked")) {
+                        str += getLogLineHtml(user, timestamp, color, (window.unsafeWindow || window).escapeHTML(entry));
+                    }
+                }
+            }
+            $('#duel_log .log_txt').html(str);
+            $('#duel_log .log_txt').scrollTop((window.unsafeWindow || window).duel_log_vsp);
+        };
+
+        for(const duelLogFilterSelector of ['.chat_cb', '.duel_cb', '.game_cb', '.private_cb', '.usernames_cb']) {
+            $(`#duel_log ${duelLogFilterSelector}`).off('change');
+            $(`#duel_log ${duelLogFilterSelector}`).change((window.unsafeWindow || window).updateDuelLog);
+        }
+        $('#duel_log .search_txt').off('input');
+        $('#duel_log .search_txt').on('input', (window.unsafeWindow || window).updateDuelLog);
+
+        const originalDuelLogPrint = (window.unsafeWindow || window).duelLogPrint;
+        (window.unsafeWindow || window).duelLogPrint = (data) => {
+            if (!data) {
+                return;
+            }
+            if (data instanceof Array) {
+                for (let i = 0; i < data.length; i++) {
+                    (window.unsafeWindow || window).duel_logs.push(data[i]);
+                }
+                (window.unsafeWindow || window).updateDuelLog();
+            } else {
+                (window.unsafeWindow || window).duel_logs.push(data);
+                let color = getConfigEntry('darkMode') ? "#00a1ff" : "#0000FF";
+                let entry = data.public_log;
+                let user = "";
+                let str = "";
+                var timestamp = (window.unsafeWindow || window).getTimestamp(data.seconds);
+                if (!data.seconds && data.timestamp) {
+                    timestamp = data.timestamp;
+                }
+                if ($('#duel_log .private_cb').is(":checked")) {
+                    if (data.private_log) {
+                        entry = data.private_log;
+                    }
+                }
+                if ($('#duel_log .search_txt').val() != "") {
+                    if (entry.toLowerCase().indexOf($('#duel_log .search_txt').val().toLowerCase()) < 0) {
+                        return;
+                    }
+                }
+                if (!data.username) {
+                    color = "#777777";
+                }
+                else if ((window.unsafeWindow || window).player1.username == data.username || ((window.unsafeWindow || window).tag_duel && player3.username == data.username)) {
+                    color = "#FF0000";
+                }
+                else if ((window.unsafeWindow || window).player2.username == data.username || ((window.unsafeWindow || window).tag_duel && player4.username == data.username)) {
+                    color = getConfigEntry('darkMode') ? "#00a1ff" : "#0000FF";
+                }
+                else {
+                    color = getConfigEntry('darkMode') ? "#FFFFFF" : "#000000";
+                }
+                if ($('#duel_log .usernames_cb').is(":checked")) {
+                    if ((window.unsafeWindow || window).conceal && (window.unsafeWindow || window).isPlayer1(data.username)) {
+                        user = " Red:";
+                    }
+                    else if ((window.unsafeWindow || window).conceal && (window.unsafeWindow || window).isPlayer2(data.username)) {
+                        user = " Blue:";
+                    }
+                    else {
+                        user = " " + data.username + ":";
+                    }
+                }
+                if (data.type == "chat") {
+                    if ($('#duel_log .chat_cb').is(":checked")) {
+                         str += getLogLineHtml(user, timestamp, color, `<i>${(window.unsafeWindow || window).escapeHTML(entry)}</i>`);
+                    }
+                }
+                else if (data.type == "duel") {
+                    if ($('#duel_log .duel_cb').is(":checked")) {
+                        if (entry == "Entered Draw Phase") {
+                            //str += '<font color="' + color + '">--------------------------------------------</font><br>';
+                            (window.unsafeWindow || window).logTurnCount++
+                            str += '<font color="' + color + '">----------------(Turn ' + (window.unsafeWindow || window).logTurnCount + ')';
+                            if ((window.unsafeWindow || window).logTurnCount < 10) {
+                                str += '-';
+                            }
+                            str += '----------------</font><br>';
+                        }
+                        str += getLogLineHtml(user, timestamp, color, (window.unsafeWindow || window).escapeHTML(entry));
+                    }
+                }
+                else {
+                    if ($('#duel_log .game_cb').is(":checked")) {
+                        str += getLogLineHtml(user, timestamp, color, (window.unsafeWindow || window).escapeHTML(entry));
+                    }
+                }
+                (window.unsafeWindow || window).saveDuelLogVSP();
+                $('#duel_log .log_txt').append(str);
+                (window.unsafeWindow || window).restoreDuelLogVSP();
+                //$('#duel_log .log_txt').scrollTop(duel_log_vsp); // received complaints
+            }
         };
 
         const originalInitPlayers = (window.unsafeWindow || window).initPlayers;

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.57
+// @version      1.1.58
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -75,7 +75,7 @@
             throw new Error("Missing ydke URL component");
             return;
         }
-        const deck = {
+        return {
             main: Array.from(base64ToArrayBuffer(components[0])),
             extra: Array.from(base64ToArrayBuffer(components[1])),
             side: Array.from(base64ToArrayBuffer(components[2]))

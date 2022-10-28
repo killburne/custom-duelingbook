@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.56
+// @version      1.1.57
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -44,6 +44,44 @@
     function capitalizeFirstLetter(string) {
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
+
+    function arrayBufferToBase64(buffer) {
+        const bytes = new Uint8Array(buffer);
+        return window.btoa(String.fromCharCode(...bytes));
+    }
+
+    function base64ToArrayBuffer(base64) {
+        const decoded = window.atob(base64);
+        const bytes = new Uint8Array(decoded.length);
+        for (let i=0; i < decoded.length; i++) {
+            bytes[i] = decoded.charCodeAt(i);
+        }
+        return new Uint32Array(bytes.buffer);
+    }
+
+    function toYdkeURL(main, side, extra) {
+        return "ydke://" +
+            arrayBufferToBase64(new Uint32Array(main).buffer) + "!" +
+            arrayBufferToBase64(new Uint32Array(extra).buffer) + "!" +
+            arrayBufferToBase64(new Uint32Array(side).buffer) + "!";
+    }
+
+    function fromYdkeURL(ydke) {
+        if (!ydke.startsWith("ydke://")) {
+            throw new Error("Unrecognized URL protocol");
+        }
+        const components = ydke.slice("ydke://".length).split("!");
+        if (components.length < 3) {
+            throw new Error("Missing ydke URL component");
+            return;
+        }
+        const deck = {
+            main: Array.from(base64ToArrayBuffer(components[0])),
+            extra: Array.from(base64ToArrayBuffer(components[1])),
+            side: Array.from(base64ToArrayBuffer(components[2]))
+        };
+    }
+
 
     const buttonStates = ['up', 'over', 'down'];
 
@@ -749,6 +787,7 @@
     migrateNewUrl();
 
     let bannedWords = [];
+    let currentDBPage = '';
 
     function addSettingsButton() {
         if (!isOnDb()) {
@@ -2651,6 +2690,8 @@
     }
 
 
+
+
     let initDone = false;
 
     function init() {
@@ -2695,10 +2736,13 @@
         }, 1000);
 
         const keysDown = new Set();
+        function hotKeyMatches(keys) {
+            return keys.every(k => keysDown.has(k));
+        }
         document.onkeyup = (e) => {
             keysDown.clear();
         };
-        document.onkeydown = (e) => {
+        document.onkeydown = async (e) => {
             keysDown.add(e.key);
             const hotkey = getConfigEntry('hotkeyRulingPage');
             if (Array.isArray(hotkey) && hotkey.length > 0 && keysDown.size === hotkey.length) {
@@ -2713,6 +2757,28 @@
                     }
                 }
             }
+
+            if (currentDBPage === 'deck_constructor') {
+                if (hotKeyMatches(['Control', 'c'])) {
+                    keysDown.clear();
+                    (window.unsafeWindow || window).exportDeckYDKE();
+                }
+                if (hotKeyMatches(['Control', 'v'])) {
+                    keysDown.clear();
+                    const ydke = await navigator.clipboard.readText();
+
+                    try {
+                        const deck = fromYdkeURL(ydke);
+                        (window.unsafeWindow || window).importedDeckName = '';
+                        (window.unsafeWindow || window).importedCards = deck;
+                        (window.unsafeWindow || window).Send({"action":"Verify YDK", "cards":deck});
+                        (window.unsafeWindow || window).showDim();
+                    } catch (e) {
+                        (window.unsafeWindow || window).errorE(e.message);
+                    }
+                }
+            }
+
         };
 
         const originalPrivateChatPrint = (window.unsafeWindow || window).privateChatPrint;
@@ -3108,23 +3174,6 @@
         };
 
         (window.unsafeWindow || window).exportDeckYDKE = () => {
-            function arrayBufferToBase64(buffer) {
-                let binary = '';
-                const bytes = new Uint8Array(buffer);
-                const len = bytes.byteLength;
-                for (let i = 0; i < len; i++) {
-                    binary += String.fromCharCode(bytes[i]);
-                }
-                return window.btoa(binary);
-            }
-
-            function toYdkeURL(main, side, extra) {
-                return "ydke://" +
-                    arrayBufferToBase64(new Uint32Array(main).buffer) + "!" +
-                    arrayBufferToBase64(new Uint32Array(extra).buffer) + "!" +
-                    arrayBufferToBase64(new Uint32Array(side).buffer) + "!";
-            }
-
             const main = [];
             const side = [];
             const extra = [];
@@ -3223,6 +3272,15 @@
             (window.unsafeWindow || window).addButton($(btn.selector), btn.cb);
         }
 
+        const originalExportDeck = (window.unsafeWindow || window).exportDeck;
+        (window.unsafeWindow || window).exportDeck = () => {
+            if ($('#combo .combo_cb').val().indexOf("YDKE Code") >= 0) {
+                (window.unsafeWindow || window).exportDeckYDKE();
+                return;
+            }
+            originalExportDeck();
+        };
+
         const originalExportDeckE = (window.unsafeWindow || window).exportDeckE;
         (window.unsafeWindow || window).exportDeckE = () => {
             const options = ["Download Link"];
@@ -3263,7 +3321,7 @@
             else {
                 options.push("YDK File");
             }
-            options.push("YDK Code");
+            options.push("YDKE Code");
             options.push("KDE Decklist");
             (window.unsafeWindow || window).getComboBox("Export Deck", "Select which format to export to", options, 0, (window.unsafeWindow || window).exportDeck);
             (window.unsafeWindow || window).showDim();
@@ -3386,6 +3444,7 @@
                 }
             }
             originalGoto(str);
+            currentDBPage = str;
         };
 
 

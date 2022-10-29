@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.58
+// @version      1.1.59
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -511,6 +511,60 @@
                 label: 'Full Art Cards',
                 type: 'checkbox',
                 default: false
+            },
+            rpsRockName: {
+                label: 'RPS Rock Name',
+                type: 'text',
+                size: 50,
+                default: 'K-9'
+            },
+            rpsRockText: {
+                label: 'RPS Rock Text',
+                type: 'text',
+                size: 50,
+                default: 'K-9 Bites Cow'
+            },
+            rpsRockImageUrl: {
+                label: 'RPS Rock Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://cdn.discordapp.com/attachments/728685782021308526/1035945827203551353/unknown.png'
+            },
+            rpsPaperName: {
+                label: 'RPS Paper Name',
+                type: 'text',
+                size: 50,
+                default: 'Deputy'
+            },
+            rpsPaperText: {
+                label: 'RPS Paper Text',
+                type: 'text',
+                size: 50,
+                default: 'Deputy Tases K-9'
+            },
+            rpsPaperImageUrl: {
+                label: 'RPS Paper Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://cdn.discordapp.com/attachments/728685782021308526/1035946621478907924/unknown.png'
+            },
+            rpsScissorsName: {
+                label: 'RPS Scissors Name',
+                type: 'text',
+                size: 300,
+                default: 'Cow'
+            },
+            rpsScissorsText: {
+                label: 'RPS Scissors Text',
+                type: 'text',
+                size: 300,
+                default: 'Cow Kicks Deputy'
+            },
+            rpsScissorsImageUrl: {
+                label: 'RPS Scissors Image Url',
+                type: 'text',
+                size: 300,
+                default: 'https://cdn.discordapp.com/attachments/775761727760629783/1035949406152826880/unknown.png'
             },
         };
 
@@ -3350,7 +3404,47 @@
             const card = originalCardFront();
             const originalInitialize = card.initialize;
             card.initialize = (...args) => {
+                // args[1] = Name
+                // args[3] = Effect
+                // args[23] = Pic
+                console.log(args[23], args);
+
+                const effect = args[3];
+
+                const rpsReplacements = {
+                    'Rock beats scissors but loses to paper': {
+                        name: getConfigEntry('rpsRockName'),
+                        text: getConfigEntry('rpsRockText'),
+                        image: getConfigEntry('rpsRockImageUrl'),
+                    },
+                    'Paper beats rock but loses to scissors': {
+                        name: getConfigEntry('rpsPaperName'),
+                        text: getConfigEntry('rpsPaperText'),
+                        image: getConfigEntry('rpsPaperImageUrl'),
+                    },
+                    'Scissors beats paper but loses to rock':{
+                        name: getConfigEntry('rpsScissorsName'),
+                        text: getConfigEntry('rpsScissorsText'),
+                        image: getConfigEntry('rpsScissorsImageUrl'),
+                    }
+                };
+                if (typeof rpsReplacements[effect] !== 'undefined' && rpsReplacements[effect]) {
+                    if (rpsReplacements[effect].name) {
+                        args[1] = rpsReplacements[effect].name;
+                    }
+                    if (rpsReplacements[effect].text) {
+                        args[3] = rpsReplacements[effect].text;
+                    }
+                }
+
                 const ret = originalInitialize(...args);
+
+                if (typeof rpsReplacements[effect] !== 'undefined' && rpsReplacements[effect]) {
+                    if (rpsReplacements[effect].image) {
+                        card.find('.pic').attr('src', rpsReplacements[effect].image);
+                    }
+                }
+
                 if (!getConfigEntry('darkModeCards')) {
                     return ret;
                 }
@@ -3360,6 +3454,7 @@
 
                 return ret;
             };
+
             const origLoadImage = card.loadImage;
             card.loadImage = () => {
                 const customArtwork = customArtworkUrls.find(c => c.name === card.data('name'));

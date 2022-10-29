@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.59
+// @version      1.1.60
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -439,6 +439,11 @@
             },
             darkMode: {
                 label: 'Dark Mode',
+                type: 'checkbox',
+                default: true
+            },
+            darkModeLog: {
+                label: 'Dark Mode Log',
                 type: 'checkbox',
                 default: true
             },
@@ -2617,19 +2622,22 @@
         if (el) {
             if (!getConfigEntry('darkMode')) {
                 el.remove();
+            } else {
+                setDarkModeLogs();
             }
             return;
         }
         if (!getConfigEntry('darkMode')) {
             return;
         }
+        setDarkModeLogs();
         const style = document.createElement('style');
         style.id = id;
         style.innerText = `
-        .cout_txt, .log_txt { background-color: #18181b; color: #efeff1; border: 0; }
-        .cout_txt .chat-line, .log_txt .chat-line { padding: 2px }
-        .cout_txt .chat-line:nth-child(even), .log_txt .chat-line:nth-child(even) { background: rgba(255, 255, 255, 0.05) }
-        .cout_txt .chat-line:hover, .log_txt .chat-line:hover { background: rgba(255, 255, 255, 0.2) }
+        .cout_txt { background-color: #18181b; color: #efeff1; border: 0; }
+        .cout_txt .chat-line { padding: 2px }
+        .cout_txt .chat-line:nth-child(even) { background: rgba(255, 255, 255, 0.05) }
+        .cout_txt .chat-line:hover { background: rgba(255, 255, 255, 0.2) }
         input, .textinput, .profile_txt, .chat_background, #watchers, #watchers .users, #preview_txt { background-color: #18181b !important; color: #efeff1 !important; }
         .cell.cell1 { background-image: url('https://custom-db.yugioh.app/assets/cell4.svg'); color: #efeff1 !important; }
         .cell.cell1.selected { background-image: url('https://custom-db.yugioh.app/assets/cell_sel.svg'); color: #efeff1 !important; }
@@ -2638,6 +2646,30 @@
         .radiobutton { border-radius: 7px; }
         #card_menu .card_menu_txt:hover { background: #979797 !important; }
         #view .content { background: #18181b; }
+        `;
+        document.body.appendChild(style);
+        adjustElementsForDarkmode();
+    }
+
+    function setDarkModeLogs() {
+        const id = 'darkModeLogCss';
+        const el = document.getElementById(id);
+        if (el) {
+            if (!getConfigEntry('darkModeLog')) {
+                el.remove();
+            }
+            return;
+        }
+        if (!getConfigEntry('darkModeLog')) {
+            return;
+        }
+        const style = document.createElement('style');
+        style.id = id;
+        style.innerText = `
+        .log_txt { background-color: #18181b; color: #efeff1; border: 0; }
+        .log_txt .chat-line { padding: 2px }
+        .log_txt .chat-line:nth-child(even) { background: rgba(255, 255, 255, 0.05) }
+        .log_txt .chat-line:hover { background: rgba(255, 255, 255, 0.2) }
         `;
         document.body.appendChild(style);
         adjustElementsForDarkmode();
@@ -3049,7 +3081,7 @@
             (window.unsafeWindow || window).logTurnCount = 0;
             for (let i = 0; i < (window.unsafeWindow || window).duel_logs.length; i++) {
                 const duelLogEntry = (window.unsafeWindow || window).duel_logs[i];
-                let color = getConfigEntry('darkMode') ? "#00a1ff" : "#0000FF";
+                let color = getConfigEntry('darkModeLog') ? "#00a1ff" : "#0000FF";
                 let entry = duelLogEntry.public_log;
                 let user = "";
                 let timestamp = (window.unsafeWindow || window).getTimestamp(duelLogEntry.seconds);
@@ -3073,10 +3105,10 @@
                     color = "#FF0000";
                 }
                 else if ((window.unsafeWindow || window).player2.username == duelLogEntry.username || ((window.unsafeWindow || window).tag_duel && (window.unsafeWindow || window).player4.username == duelLogEntry.username)) {
-                    color = getConfigEntry('darkMode') ? "#00a1ff" : "#0000FF";
+                    color = getConfigEntry('darkModeLog') ? "#00a1ff" : "#0000FF";
                 }
                 else {
-                    color = getConfigEntry('darkMode') ? '#ffffff' : "#000000";
+                    color = getConfigEntry('darkModeLog') ? '#ffffff' : "#000000";
                 }
                 if ($('#duel_log .usernames_cb').is(":checked")) {
                     user = " " + duelLogEntry.username + ":";
@@ -3129,7 +3161,7 @@
                 (window.unsafeWindow || window).updateDuelLog();
             } else {
                 (window.unsafeWindow || window).duel_logs.push(data);
-                let color = getConfigEntry('darkMode') ? "#00a1ff" : "#0000FF";
+                let color = getConfigEntry('darkModeLog') ? "#00a1ff" : "#0000FF";
                 let entry = data.public_log;
                 let user = "";
                 let str = "";
@@ -3154,10 +3186,10 @@
                     color = "#FF0000";
                 }
                 else if ((window.unsafeWindow || window).player2.username == data.username || ((window.unsafeWindow || window).tag_duel && player4.username == data.username)) {
-                    color = getConfigEntry('darkMode') ? "#00a1ff" : "#0000FF";
+                    color = getConfigEntry('darkModeLog') ? "#00a1ff" : "#0000FF";
                 }
                 else {
-                    color = getConfigEntry('darkMode') ? "#FFFFFF" : "#000000";
+                    color = getConfigEntry('darkModeLog') ? "#FFFFFF" : "#000000";
                 }
                 if ($('#duel_log .usernames_cb').is(":checked")) {
                     if ((window.unsafeWindow || window).conceal && (window.unsafeWindow || window).isPlayer1(data.username)) {

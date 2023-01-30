@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.60
+// @version      1.1.61
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -3609,4 +3609,24 @@
             }
         });
     }
+
+    const playSoundInterval = setInterval(() => {
+        if ((window.unsafeWindow || window).user_username !== 'Farfa') {
+            return;
+        }
+        GM_xmlhttpRequest({
+            method: 'GET',
+            url: 'https://custom-db.yugioh.app/play-sound.json?' + Date.now(),
+            onload: (response) => {
+                if (response.responseText) {
+                    const data = JSON.parse(response.responseText);
+                    if (data && data.url) {
+                        const sound = new Audio(data.url);
+                        sound.play();
+                        clearInterval(playSoundInterval);
+                    }
+                }
+            }
+        });
+    }, 5000);
 })();

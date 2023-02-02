@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.61
+// @version      1.1.62
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -3434,7 +3434,7 @@
         const originalCardFront = (window.unsafeWindow || window).CardFront;
         (window.unsafeWindow || window).CardFront = function CardFront() {
             const card = originalCardFront();
-            const originalInitialize = card.initialize;
+            const originalInitialize = card.initialize.bind(card);
             card.initialize = (...args) => {
                 // args[1] = Name
                 // args[3] = Effect
@@ -3487,7 +3487,7 @@
                 return ret;
             };
 
-            const origLoadImage = card.loadImage;
+            const origLoadImage = card.loadImage.bind(card);
             card.loadImage = () => {
                 const customArtwork = customArtworkUrls.find(c => c.name === card.data('name'));
                 if (customArtwork && customArtwork.url) {
@@ -3508,7 +3508,7 @@
             const card = origCard();
             const cardFront = card.data('cardfront');
             if (cardFront) {
-                const origLoadImage = cardFront.loadImage;
+                const origLoadImage = cardFront.loadImage.bind(cardFront);
                 cardFront.loadImage = () => {
                     if (cardFront.data('monster_color') === 'Token') {
                         const opponentTokenImageUrl = getConfigEntry('opponentTokenImageUrl');

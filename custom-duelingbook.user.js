@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.62
+// @version      1.1.63
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -2829,6 +2829,9 @@
             keysDown.clear();
         };
         document.onkeydown = async (e) => {
+            if (e.target.nodeName === 'INPUT') {
+                return;
+            }
             keysDown.add(e.key);
             const hotkey = getConfigEntry('hotkeyRulingPage');
             if (Array.isArray(hotkey) && hotkey.length > 0 && keysDown.size === hotkey.length) {

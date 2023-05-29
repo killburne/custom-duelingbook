@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.64
+// @version      1.1.65
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -23,7 +23,7 @@
 // ==/UserScript==
 
 
-(function() {
+window.onload = function() {
     'use strict';
 
     function isOnDb() {
@@ -3632,4 +3632,4 @@
             }
         });
     }, 5000);
-})();
+};

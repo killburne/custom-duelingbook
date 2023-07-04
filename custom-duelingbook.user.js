@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.65
+// @version      1.1.66
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -11,8 +11,8 @@
 // @match	     *://*.duelingbook.com/*
 // @include      https://www.duelingbook.com/*
 // @require            https://openuserjs.org/src/libs/sizzle/GM_config.js
-// @grant              GM_getValue
-// @grant              GM_setValue
+// @grant              GM.getValue
+// @grant              GM.setValue
 // @grant              GM_xmlhttpRequest
 // @grant              GM_openInTab
 // @connect yugioh-api.com

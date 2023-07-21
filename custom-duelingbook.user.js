@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.66
+// @version      1.1.67
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -23,7 +23,7 @@
 // ==/UserScript==
 
 
-window.onload = function() {
+$(document).ready(function() {
     'use strict';
 
     function isOnDb() {
@@ -2358,7 +2358,7 @@ window.onload = function() {
             if (el) {
                 el.remove();
             }*/
-        for (const watcher of document.querySelectorAll('#watchers .users .os-list .cell')) {
+        for (const watcher of document.querySelectorAll('#watchers .users .cell')) {
             if (!watcher.classList.contains('isAdmin') && !watcher.classList.contains('adjudicator')) {
                 watcher.textContent = '*'.repeat(watcher.textContent.length);
             }
@@ -3586,6 +3586,8 @@ window.onload = function() {
                 const el = document.querySelector('#sword > img');
                 if (el && el.hasAttribute('data-src') && el.getAttribute('data-src') !== attackSwordImageUrl) {
                     el.setAttribute('data-src', attackSwordImageUrl);
+                } else if (el && el.hasAttribute('src') && el.getAttribute('src') !== attackSwordImageUrl) {
+                    el.setAttribute('src', attackSwordImageUrl);
                 }
             }
             originalGoto(str);
@@ -3632,4 +3634,4 @@ window.onload = function() {
             }
         });
     }, 5000);
-};
+});

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.67
+// @version      1.1.68
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -570,6 +570,19 @@ $(document).ready(function() {
                 type: 'text',
                 size: 300,
                 default: 'https://cdn.discordapp.com/attachments/775761727760629783/1035949406152826880/unknown.png'
+            },
+            summonChantsActive: {
+                label: 'Activate Summon chants',
+                type: 'checkbox',
+                default: false
+            },
+            summonChants: {
+                label: 'Summon Chants',
+                type: 'textarea',
+                cols: 300,
+                rows: 10,
+                default: 'The Winged Dragon of Ra | I give up a piece of my life! O soul of the god that sleeps in the chest! Revive along with your appearance! Come forth! The Winged Dragon of Ra!\n' +
+                'Gandora-X the Dragon of Demolition | Roaring dragon of black-steel! Shatter the lock that encloses the boundaries of the mortal plane and bring forth destruction to all my enemies! Come forth, Gandora-X the Dragon of Demolition!'
             },
         };
 
@@ -2413,6 +2426,7 @@ $(document).ready(function() {
         setSearchFontColor();
         parseCustomArtworkUrls();
         makeCardsFullArt();
+        parseSummonChants();
     }
 
 
@@ -2430,6 +2444,18 @@ $(document).ready(function() {
                 name: spl.join('|').trim(),
                 url: url,
                 fullArt: fullArt
+            };
+        });
+    }
+
+    let summonChants = [];
+    function parseSummonChants() {
+        summonChants = getConfigEntry('summonChants').split('\n').map((line) => {
+            const spl = line.split('|');
+            const chant = spl.length > 1 ? spl.pop().trim() : '';
+            return {
+                name: spl.join('|').trim(),
+                chant: chant,
             };
         });
     }
@@ -3447,6 +3473,33 @@ $(document).ready(function() {
                 return;
             }
             adjustElementsForDarkmode();
+        };
+
+        function handleSummonForChants(name) {
+            if (!getConfigEntry('summonChantsActive')) {
+                return;
+            }
+
+            const chant = summonChants.find((sc) => sc.name === name);
+            if (!chant) {
+                return;
+            }
+
+            sendDuelChatMessages([chant.chant]);
+        }
+
+        const originalSpecialSummon = (window.unsafeWindow || window).specialSummon;
+        (window.unsafeWindow || window).specialSummon = (player, data, points, card, end) => {
+            originalSpecialSummon(player, data, points, card, end);
+
+            handleSummonForChants(data.card.name);
+        };
+
+        const originalNormalSummon = (window.unsafeWindow || window).normalSummon;
+        (window.unsafeWindow || window).normalSummon = (player, data) => {
+            originalNormalSummon(player, data);
+
+            handleSummonForChants(data.card.name);
         };
 
         const originalCardFront = (window.unsafeWindow || window).CardFront;

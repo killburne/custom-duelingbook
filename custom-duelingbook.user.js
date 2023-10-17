@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.68
+// @version      1.1.69
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -3492,14 +3492,18 @@ $(document).ready(function() {
         (window.unsafeWindow || window).specialSummon = (player, data, points, card, end) => {
             originalSpecialSummon(player, data, points, card, end);
 
-            handleSummonForChants(data.card.name);
+            if (player.username === (window.unsafeWindow || window).user_username) {
+                handleSummonForChants(data.card.name);
+            }
         };
 
         const originalNormalSummon = (window.unsafeWindow || window).normalSummon;
         (window.unsafeWindow || window).normalSummon = (player, data) => {
             originalNormalSummon(player, data);
 
-            handleSummonForChants(data.card.name);
+            if (player.username === (window.unsafeWindow || window).user_username) {
+                handleSummonForChants(data.card.name);
+            }
         };
 
         const originalCardFront = (window.unsafeWindow || window).CardFront;

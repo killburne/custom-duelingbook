@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom DB
 // @description  Adds options to customize DB and make it more streamer friendly
-// @version      1.1.69
+// @version      1.1.70
 // @author       Killburne
 // @license		 MIT
 // @namespace    https://www.yugioh-api.com/
@@ -2983,7 +2983,7 @@ $(document).ready(function() {
                     var cell = (window.unsafeWindow || window).private_chat.find('.cell').eq(i);
                     if (cell.hasClass('selected')) {
                         (window.unsafeWindow || window).private_chat.find('.cout_txt').append(getChatLineHtml(data.username + ' has logged in', getConfigEntry('darkMode') ? '#ffffff' : '#000000'));
-                        cell.data('cout', (window.unsafeWindow || window).private_chat.find('.cout_txt').html())
+                        cell.data('cout', (window.unsafeWindow || window).private_chat.find('.cout_txt').html());
                         (window.unsafeWindow || window).private_chat.find('.cout_txt').scrollTop(cell.data('vsp')); // doesn't seem right
                         break;
 
@@ -3000,7 +3000,7 @@ $(document).ready(function() {
                     var cell = (window.unsafeWindow || window).private_chat.find('.cell').eq(i);
                     if (cell.hasClass('selected')) {
                         (window.unsafeWindow || window).private_chat.find('.cout_txt').append(getChatLineHtml(data.username + ' has logged out', getConfigEntry('darkMode') ? '#ffffff' : '#000000'));
-                        cell.data('cout', (window.unsafeWindow || window).private_chat.find('.cout_txt').html())
+                        cell.data('cout', (window.unsafeWindow || window).private_chat.find('.cout_txt').html());
                         (window.unsafeWindow || window).private_chat.find('.cout_txt').scrollTop(cell.data('vsp')); // doesn't seem right
                         break;
 

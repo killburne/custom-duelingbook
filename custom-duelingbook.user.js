@@ -82,7 +82,6 @@ $(document).ready(function() {
         };
     }
 
-
     const buttonStates = ['up', 'over', 'down'];
 
     const overrideButtonImages = [
@@ -178,6 +177,41 @@ $(document).ready(function() {
                 type: 'text',
                 size: 300,
                 default: 'https://github.com/killburne/custom-duelingbook/raw/master/bad-words.txt'
+            },
+            useCustomFont: {
+                label: 'Use Custom Font (please reload after changing this)',
+                type: 'checkbox',
+                default: true
+            },
+            customFontSrcEotUrl: {
+                label: 'Custom font eot url',
+                type: 'text',
+                size: 300,
+                default: 'https://static.duelingbook.com/fonts/MatrixBook.eot'
+            },
+            customFontSrcSvgUrl: {
+                label: 'Custom font svg url',
+                type: 'text',
+                size: 300,
+                default: 'https://static.duelingbook.com/fonts/MatrixBook.svg#MatrixBook'
+            },
+            customFontSrcTtfUrl: {
+                label: 'Custom font ttf url',
+                type: 'text',
+                size: 300,
+                default: 'https://static.duelingbook.com/fonts/MatrixBook.ttf'
+            },
+            customFontSrcWoffUrl: {
+                label: 'Custom font woff url',
+                type: 'text',
+                size: 300,
+                default: 'https://static.duelingbook.com/fonts/MatrixBook.woff'
+            },
+            customFontSrcWoff2Url: {
+                label: 'Custom font woff2 url',
+                type: 'text',
+                size: 300,
+                default: 'https://static.duelingbook.com/fonts/MatrixBook.woff2'
             },
             thinkEmoteUrl: {
                 label: 'Think Emote Url',
@@ -928,7 +962,7 @@ $(document).ready(function() {
         wrapper.style.left = 'auto';
         wrapper.style.width = '120px';
         wrapper.style['font-size'] = '20px';
-        let html = '<h2 id="macroHeadline" style="background-color: black; color: white;cursor: pointer;">Macros</h2><div id="macrosWrapper" style="position: initial; display: none;">';
+        let html = '<h2 id="macroHeadline" align="center" style="background-color: transparent; color: white;cursor: pointer; text-shadow: 2px 2px 0px #000000;">Macros</h2><div id="macrosWrapper" style="position: initial; display: none;">';
         const macros = macroTexts.split('\n');
         let isInCategory = false;
         for (const macro of macros) {
@@ -2399,6 +2433,8 @@ $(document).ready(function() {
         return str.split(/\b/).map((word) => bannedWords.includes(word.toLowerCase()) ? getCensoredWord(word, showTitle) : word).join('');
     }
 
+    var calledOnce = false;
+
     function applyChanges() {
         if (!getConfigEntry('active') || !isOnDb()) {
             return;
@@ -2427,8 +2463,225 @@ $(document).ready(function() {
         parseCustomArtworkUrls();
         makeCardsFullArt();
         parseSummonChants();
+
+        //custom stuff by reFuseN
+        //calls that are needed only once
+        if (!calledOnce)
+        {
+           useCustomFont();
+        }
+    
+        //replace ugly button icons
+        //setMenuButtons();
+        setOnlineUsersButton();
+        setPublicChatButton();
+        setPrivateChatButton();
+        setprivateChatButtonAnimation();
+        setScreenshotButton();
+        setMuteButton();
+        //setAvatarFrame();
+    
+
+        calledOnce = true;
     }
 
+    function useCustomFont()
+    {
+        if (!getConfigEntry('useCustomFont') || calledOnce){
+            return;
+        }
+
+        overrideAllFontFaceRulesSources();
+    }
+
+    //returns all @font-face elements excluding the ones used for the cards to ensure they stay accurate
+    function overrideAllFontFaceRulesSources()
+    {
+        const styleSheets = Array.from(document.styleSheets);
+
+        if (!styleSheets) {
+            return;
+        }
+
+        styleSheets.forEach(styleSheet => {
+            const cssRules = styleSheet.cssRules;
+            for(var i = 0; i < cssRules.length; i++)
+            {
+                if (cssRules[i].cssText.startsWith('@font-face') && !(cssRules[i].cssText.includes('Matrix') || cssRules[i].cssText.includes('Stone')))
+                {
+                    var styleTxt = cssRules[i].cssText.split('src: ')[0];
+
+                    styleTxt += getCustomFontRuleSources();
+
+                    cssRules[i].style.cssText = styleTxt;
+                }
+            }
+            styleSheet.insertRule("@font-face { font-family: 'Helvetica';" + getCustomFontRuleSources());
+            styleSheet.insertRule("@font-face { font-family: 'Arial';" + getCustomFontRuleSources());
+            styleSheet.insertRule("@font-face { font-family: 'Arial Black2';" + getCustomFontRuleSources());
+            styleSheet.insertRule("@font-face { font-family: 'Arial Rounded MT Bold';" + getCustomFontRuleSources());
+            styleSheet.insertRule("@font-face { font-family: 'Kristen ITC';" + getCustomFontRuleSources());
+        });
+    }
+    
+    function getCustomFontRuleSources()
+    {
+        return "\nsrc: url('"+ getConfigEntry('customFontSrcEotUrl') +"');\n\
+src: url('"+ getConfigEntry('customFontSrcEotUrl') +"?#iefix') format('embedded-opentype'),\n\
+url('"+ getConfigEntry('customFontSrcSvgUrl') +"') format('svg'),\n\
+url('"+ getConfigEntry('customFontSrcTtfUrl') +"') format('truetype'),\n\
+url('"+ getConfigEntry('customFontSrcWoffUrl') +"') format('woff'),\n\
+url('"+ getConfigEntry('customFontSrcWoff2Url') +"') format('woff2');}";
+    }
+
+    function setMenuButtons()
+    {
+        const elements = document.getElementsByClassName('menu_btn');
+        const menuButtonImageUrl = "https://svgsilh.com/svg/1222107.svg";
+        
+        for (var i = 0; i < elements.length; i++)
+        {
+            var el = elements[i].getElementsByTagName('img')[0];
+            if (!el) {
+                return;
+            }
+
+            el.src = menuButtonImageUrl;
+        }
+    }
+
+    function setOnlineUsersButton()
+    {
+        const parentElement = document.getElementById('online_btn');
+        const onlineButtonImageUrl = "https://www.svgrepo.com/show/511200/users-group.svg";
+            
+        var el = parentElement.getElementsByTagName('img')[0];
+
+        if (!el) {
+              return;
+        }
+
+        el.src = onlineButtonImageUrl;
+        el.style.filter="invert(100%)";
+    }
+
+    function setPublicChatButton()
+    {
+        const parentElement = document.getElementById('chat_btn');
+        const chatButtonImageUrl = "https://www.svgrepo.com/show/510893/chat-conversation.svg";
+            
+        var el = parentElement.getElementsByTagName('img')[0];
+
+        if (!el) {
+              return;
+        }
+
+        el.src = chatButtonImageUrl;
+        el.style.filter="invert(100%)";
+    }
+
+    function setPrivateChatButton()
+    {
+        const parentElement = document.getElementById('private_btn');
+        const chatButtonImageUrl = "https://www.svgrepo.com/show/510889/chat-circle-dots.svg";
+
+        var el = parentElement.getElementsByTagName('img')[0];
+
+        if (!el) {
+              return;
+        }
+
+        el.src = chatButtonImageUrl;
+        el.style.filter="invert(100%)";
+    }
+
+    function setprivateChatButtonAnimation()
+    {
+        const parentElement = document.getElementById('private_btn_anim');
+        const chatButtonImageUrl = "https://www.svgrepo.com/show/510885/chat-circle-add.svg";
+            
+        var el = parentElement.getElementsByTagName('img')[0];
+
+        if (!el) {
+              return;
+        }
+
+        el.src = chatButtonImageUrl;
+        el.style.filter="invert(100%)";
+    }
+
+    function setScreenshotButton()
+    {
+        const parentElement = document.getElementById('screenshot_btn');
+        const screenshotButtonUrl = "https://www.svgrepo.com/show/479182/eye-of-horus.svg";
+
+        //this removes the ugly box shadow behind the button
+        document.getElementsByClassName("hidden")[0].remove();
+            
+        var el = parentElement.getElementsByTagName('img')[0];
+
+        if (!el) {
+              return;
+        }
+
+        el.src = screenshotButtonUrl;
+        el.style.filter="invert(100%)";
+    }
+
+    function setMuteButton()
+    {
+        const parentElement = document.getElementById('mute_btn');
+        const originalMuteButtonOverlay = document.getElementById('cross');
+        const muteButtonUrl = "https://www.svgrepo.com/show/511197/volume-max.svg";
+        const mutedButtonUrl = "https://www.svgrepo.com/show/511205/volume-off.svg";
+            
+        var el = parentElement.getElementsByTagName('img')[0];
+
+        if (!el) {
+              return;
+        }
+
+        var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+            if (mutation.type === "attributes") {
+                if (window.getComputedStyle(originalMuteButtonOverlay).getPropertyValue('display') == 'none')
+                {
+                    el.src = muteButtonUrl;
+                }
+                else
+                {
+                    el.src = mutedButtonUrl;
+                }
+            }
+            });
+        });
+
+        observer.observe(originalMuteButtonOverlay, {attributes: true});
+        el.style.filter="invert(100%)";
+        setMutedButton();
+    }
+
+    function setMutedButton()
+    {
+        const parentElement = document.getElementById('cross');
+        parentElement.style.opacity = 0;
+    }
+
+    /*WIP
+    function setAvatarFrame()
+    {
+        const elements = document.getElementsByClassName('avatar_frame');
+        const frameUrl = "https://www.svgrepo.com/show/332249/border.svg";
+
+        console.log("elements:");
+        console.log(elements);
+
+        if (!elements)
+            return;
+
+        console.log("huhn" + elements.length);
+    }
+        */
 
     let customArtworkUrls = [];
     function parseCustomArtworkUrls() {
